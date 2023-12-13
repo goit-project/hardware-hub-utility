@@ -4,8 +4,6 @@ import argparse
 import argcomplete
 
 
-parser = argparse.ArgumentParser()
-
 # TODO (functionality): instantiate component / library
 # - argument, set create (component, package)
 # - argument, set library (selection, default)
@@ -38,5 +36,8 @@ parser = argparse.ArgumentParser()
 #
 # TODO (functionality): generate target project / update dependencies?
 
-argcomplete.autocomplete(parser)
-args = parser.parse_args()
+
+def main():
+    parser = argparse.ArgumentParser()
+    argcomplete.autocomplete(parser)
+    args = parser.parse_args()
