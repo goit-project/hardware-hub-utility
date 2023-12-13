@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools", "argparse", "argcomplete"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "goit"
+version = "0.0.1"
+description = "Python-based utility for working with the GoIT open-source semiconductor IP hub"
+authors = [
+  {name="Rihards Novickis", email="rihards.novickis@edi.lv"},
+]
+readme = "README.md"
+# TODO:
+# classifiers
+# requires-python
+
+[project.urls]
+Homepage = "https://github.com/goit-project/hardware-hub-utility"
+Issues   = "https://github.com/goit-project/hardware-hub-utility/issues"
+
+[project.scripts]
+goit = "goit.utility"
