@@ -1,6 +1,11 @@
 [build-system]
-requires = ["setuptools", "argparse", "argcomplete"]
+requires = [
+  "setuptools",
+  "argparse",
+  "argcomplete",
+]
 build-backend = "setuptools.build_meta"
+
 
 [project]
 name = "goit"
@@ -14,9 +19,11 @@ readme = "README.md"
 # classifiers
 # requires-python
 
+
 [project.urls]
 Homepage = "https://github.com/goit-project/hardware-hub-utility"
 Issues   = "https://github.com/goit-project/hardware-hub-utility/issues"
 
+
 [project.scripts]
-goit = "goit.utility"
+goit = "goit.utility:main"
