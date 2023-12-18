@@ -39,5 +39,25 @@ import argcomplete
 
 def main():
     parser = argparse.ArgumentParser()
+
+    # define tool's mutually exclusive commands
+    subparsers = parser.add_subparsers(dest="cmd")
+
+    # create mutually exclusive commands/parsers
+    subparsers.add_parser("support",   help="Ensure/check support for depending packages and tools")
+    subparsers.add_parser("component", help="Instantiate component into the repository")
+    subparsers.add_parser("package",   help="Instantiate package (routine) file into the repository")
+    subparsers.add_parser("version",   help="Get version local/upstream versions")
+    subparsers.add_parser("check",     help="Perform codebase check")
+
+    # this produces autocomplete (if properly enabled)
     argcomplete.autocomplete(parser)
+
+    # parse the arguments
     args = parser.parse_args()
+
+    print("Invoked command: %s" %(args.cmd))
+
+
+if __name__ == "__main__":
+    main()
