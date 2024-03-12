@@ -2,6 +2,12 @@
 # PYTHON_ARGCOMPLETE_OK
 import argparse
 import argcomplete
+# TODO automate
+import goit.subcommands.support
+import goit.subcommands.check
+import goit.subcommands.component
+import goit.subcommands.package
+import goit.subcommands.version
 
 
 # TODO (functionality): instantiate component / library
@@ -43,12 +49,12 @@ def main():
     # define tool's mutually exclusive commands
     subparsers = parser.add_subparsers(dest="cmd")
 
-    # create mutually exclusive commands/parsers
-    subparsers.add_parser("support",   help="Ensure/check support for depending packages and tools")
-    subparsers.add_parser("component", help="Instantiate component into the repository")
-    subparsers.add_parser("package",   help="Instantiate package (routine) file into the repository")
-    subparsers.add_parser("version",   help="Get version local/upstream versions")
-    subparsers.add_parser("check",     help="Perform codebase check")
+    # create mutually exclusive commands/parsers (TODO: autocomplete)
+    goit.subcommands.support.add_command_parser(subparsers)
+    goit.subcommands.check.add_command_parser(subparsers)
+    goit.subcommands.component.add_command_parser(subparsers)
+    goit.subcommands.package.add_command_parser(subparsers)
+    goit.subcommands.version.add_command_parser(subparsers)
 
     # this produces autocomplete (if properly enabled)
     argcomplete.autocomplete(parser)
