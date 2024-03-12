@@ -1,6 +1,5 @@
 import glob
-import os.path
-import os.link
+import os
 import tempfile
 import warnings
 
