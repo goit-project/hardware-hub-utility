@@ -46,15 +46,18 @@ import goit.subcommands.version
 def main():
     parser = argparse.ArgumentParser()
 
+    # create placeholder for commands
+    subcommands = {}
+
     # define tool's mutually exclusive commands
     subparsers = parser.add_subparsers(dest="cmd")
 
-    # create mutually exclusive commands/parsers (TODO: autocomplete)
-    goit.subcommands.support.add_command_parser(subparsers)
-    goit.subcommands.check.add_command_parser(subparsers)
-    goit.subcommands.component.add_command_parser(subparsers)
-    goit.subcommands.package.add_command_parser(subparsers)
-    goit.subcommands.version.add_command_parser(subparsers)
+    # create mutually exclusive commands/parsers (TODO: automate)
+    goit.subcommands.support.add_command(subcommands, subparsers)
+    goit.subcommands.check.add_command(subcommands, subparsers)
+    goit.subcommands.component.add_command(subcommands, subparsers)
+    goit.subcommands.package.add_command(subcommands, subparsers)
+    goit.subcommands.version.add_command(subcommands, subparsers)
 
     # this produces autocomplete (if properly enabled)
     argcomplete.autocomplete(parser)
@@ -62,7 +65,10 @@ def main():
     # parse the arguments
     args = parser.parse_args()
 
-    print("Invoked command: %s" %(args.cmd))
+    if args.cmd in subcommands:
+        subcommands[args.cmd](args)
+    else:
+        print("Invoked erroneous command: %s" %(args.cmd))
 
 
 if __name__ == "__main__":
