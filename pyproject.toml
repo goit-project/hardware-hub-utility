@@ -9,8 +9,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "goit"
-version = "0.0.1"
 description = "Python-based utility for working with the GoIT open-source semiconductor IP hub"
+dynamic = ["version"]
 authors = [
   {name="Rihards Novickis", email="rihards.novickis@edi.lv"},
 ]
@@ -18,6 +18,9 @@ readme = "README.md"
 # TODO:
 # classifiers
 # requires-python
+
+[tool.setuptools.dynamic]
+version = {file = "src/goit/VERSION"}
 
 
 [project.urls]

@@ -1,12 +1,13 @@
 import argparse
 import os
+import goit
 
 _CMD_NAME = os.path.basename(__file__).split('.')[0]
 _CMD_HELP = "Get version local/upstream versions"
 
 
 def command_callback(args):
-  print("TODO: version")
+  print(open(goit.__path__[0] + '/VERSION', 'r').read().replace('\n', ''))
 
 
 def add_command(subcommands, subparsers):
