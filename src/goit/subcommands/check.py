@@ -1,12 +1,15 @@
 import argparse
 import os
 
+from goit.classes.Check import Check
+
 _CMD_NAME = os.path.basename(__file__).split('.')[0]
 _CMD_HELP = "Perform codebase check"
 
 
 def command_callback(args):
-  print("Command: " + _CMD_NAME)
+  check = Check(args.filepath)
+  check.analyze(check.document)
 
 
 def add_command(subcommands, subparsers):
@@ -27,4 +30,12 @@ def add_command(subcommands, subparsers):
   subcommands[_CMD_NAME] = command_callback
 
   # add subparser and corresponding arguments
-  subparsers.add_parser(_CMD_NAME, help=_CMD_HELP)
+  prser = subparsers.add_parser(_CMD_NAME, help=_CMD_HELP)
+  prser.add_argument("-i", dest="filepath", required=True, help="path of the input file to check", type=lambda file_path: valid_file(prser, file_path))
+
+
+def valid_file(parser, file_path):
+    if not os.path.exists(file_path):
+        parser.error("The file %s does not exist!" % file_path)
+    else:
+        return file_path
