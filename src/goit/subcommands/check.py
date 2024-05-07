@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from classes.Check import Check
+from goit.classes.Check import Check
 
 _CMD_NAME = os.path.basename(__file__).split('.')[0]
 _CMD_HELP = "Perform codebase check"

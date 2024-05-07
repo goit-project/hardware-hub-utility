@@ -4,7 +4,6 @@ import sys
 import argparse
 import argcomplete
 # TODO automate
-sys.path.append("..")
 import goit.subcommands.support
 import goit.subcommands.check
 import goit.subcommands.component
