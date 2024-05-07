@@ -1,8 +1,6 @@
 [build-system]
 requires = [
   "setuptools",
-  "argparse",
-  "argcomplete",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -10,11 +8,18 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "goit"
 description = "Python-based utility for working with the GoIT open-source semiconductor IP hub"
+readme = "README.md"
 dynamic = ["version"]
 authors = [
   {name="Rihards Novickis", email="rihards.novickis@edi.lv"},
 ]
-readme = "README.md"
+dependencies = [
+  "argparse",
+  "argcomplete",
+  "vunit_hdl",
+]
+
+
 # TODO:
 # classifiers
 # requires-python
