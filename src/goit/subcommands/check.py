@@ -31,10 +31,11 @@ def add_command(subcommands, subparsers):
 
   # add subparser and corresponding arguments
   prser = subparsers.add_parser(_CMD_NAME, help=_CMD_HELP)
-  prser.add_argument("-i", dest="filepath", required=True, help="path of the input file to check", type=lambda file_path: valid_file(prser, file_path))
+  prser.add_argument("-i", dest="filepath", required=True,  help="path of the input file to check", type=lambda file_path: valid_path(prser, file_path))
+  prser.add_argument("-v", dest="valid",    required=False, help="validate file if set",            action='store_true')
 
 
-def valid_file(parser, file_path):
+def valid_path(parser, file_path):
     if not os.path.exists(file_path):
         parser.error("The file %s does not exist!" % file_path)
     else:
