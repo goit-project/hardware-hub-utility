@@ -1,15 +1,15 @@
-import argparse
 import os
 
-from goit.classes.Check import Check
+from goit.classes.CheckVHDL import CheckVHDL
 
 _CMD_NAME = os.path.basename(__file__).split('.')[0]
 _CMD_HELP = "Perform codebase check"
 
 
 def command_callback(args):
-  check = Check(args.filepath)
-  check.analyze(check.document)
+  if args.extension == "vhdl": 
+    check = CheckVHDL(args.filepath)
+    check.analyze(check.document)
 
 
 def add_command(subcommands, subparsers):
@@ -31,8 +31,9 @@ def add_command(subcommands, subparsers):
 
   # add subparser and corresponding arguments
   prser = subparsers.add_parser(_CMD_NAME, help=_CMD_HELP)
-  prser.add_argument("-i", dest="filepath", required=True,  help="path of the input file to check", type=lambda file_path: valid_path(prser, file_path))
-  prser.add_argument("-v", dest="valid",    required=False, help="validate file if set",            action='store_true')
+  prser.add_argument("-i", dest="filepath",  required=True,  help="path of the input file to check", type=lambda file_path: valid_path(prser, file_path))
+  prser.add_argument("-v", dest="valid",     required=False, help="validate file if set", action='store_true')
+  prser.add_argument("-e", dest="extension", required=False, help="chooses how to interpret the file", default="vhdl", choices=["vhdl", "py"])
 
 
 def valid_path(parser, file_path):
