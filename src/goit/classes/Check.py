@@ -10,22 +10,24 @@ class Check():
 
     def analyze(self, document):
         """Function to analyze document."""
-        pass
-        return result
+        return document
 
 
-    def search(self, documet):
+    def search(self, document):
         """Function to search special commands."""
-        pass
-        return result
+        return document
 
 
-    def result(self, documet):
+    def result(self, document):
         """Function to make conclusions and return results."""
-        pass
-        return result
+        return document
+
+
+    def printDemo(self, args):
+        """Function print out demo."""
+        return args
     
 
-    def test(self, line):
+    def test(self, document):
         """Simple test function."""
-        return self.lines[line]
+        return document

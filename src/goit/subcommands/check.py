@@ -10,6 +10,12 @@ def command_callback(args):
   if args.extension == "vhdl": 
     check = CheckVHDL(args.filepath)
     check.analyze(check.document)
+    
+    if args.stats:
+      check.printStats()
+    
+    if args.demo:
+      check.printDemo(args)
 
 
 def add_command(subcommands, subparsers):
@@ -32,8 +38,9 @@ def add_command(subcommands, subparsers):
   # add subparser and corresponding arguments
   prser = subparsers.add_parser(_CMD_NAME, help=_CMD_HELP)
   prser.add_argument("-i", dest="filepath",  required=True,  help="path of the input file to check", type=lambda file_path: valid_path(prser, file_path))
-  prser.add_argument("-v", dest="valid",     required=False, help="validate file if set", action='store_true')
   prser.add_argument("-e", dest="extension", required=False, help="chooses how to interpret the file", default="vhdl", choices=["vhdl", "py"])
+  prser.add_argument("-d", "--demo",  dest="demo",  required=False, help="prints the pseudo-structure of the file", action='store_true')
+  prser.add_argument("-s", "--stats", dest="stats", required=False, help="prints the statistics of found commands and elements", action='store_true')
 
 
 def valid_path(parser, file_path):
