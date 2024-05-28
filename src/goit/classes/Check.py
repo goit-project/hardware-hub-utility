@@ -23,10 +23,13 @@ class Check():
         return document
 
 
-    def printDemo(self, args):
+    def print_demo(self, args):
         """Function print out demo."""
         return args
     
+    def print_stats(self):
+        """Function print out statistics."""
+        return []
 
     def test(self, document):
         """Simple test function."""

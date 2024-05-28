@@ -12,10 +12,10 @@ def command_callback(args):
     check.analyze(check.document)
     
     if args.stats:
-      check.printStats()
+      check.print_stats()
     
     if args.demo:
-      check.printDemo(args)
+      check.print_demo(args)
 
 
 def add_command(subcommands, subparsers):
