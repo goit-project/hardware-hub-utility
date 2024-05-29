@@ -21,43 +21,30 @@ class CheckVHDL(Check):
  
     More details.
     """
-    settings = []
-    elements = {}
 
-    def __init__(self, argv):
-        """The constructor."""
+    settings  = [{'name': '--!',          'enabled': True,                    'regex': r'(--!.*)'},
+                 {'name': '@file',        'enabled': True,                    'regex': r'(--!\s+@file\s+.*)'},
+                 {'name': '@author',      'enabled': True,                    'regex': r'(--!\s+@author\s+.*)'},
+                 {'name': '@brief',       'enabled': True,                    'regex': r'(--!\s+@brief\s+.*)'},
+                 {'name': '@param',       'enabled': True,                    'regex': r'(--!\s+@param\s+.*)'},
+                 {'name': 'library',      'enabled': True, 'validate': True,  'regex': r'(?i)\s*(library\s+\S+\s*;)'},
+                 {'name': 'use',          'enabled': True, 'validate': True,  'regex': r'(?i)\s*(use\s+\S+[.]\S+\s*;)'},
+                 {'name': 'entity',       'enabled': True, 'validate': True,  'regex': r'(?im)^\s*(entity\s+(?P<id>\S+)\s+is[\S\s]+?end(\s+entity)?(\s+(?P=id))?\s*;)'},
+                 {'name': 'architecture', 'enabled': True, 'validate': True,  'regex': r'(?im)^\s*(architecture\s+(?P<id>\S+)\s+of\s+\S+\s+is[\S\s]+?begin[\S\s]+?end(\s+architecture)?(\s+(?P=id))?\s*;)'},
+                 {'name': 'generic',      'enabled': True, 'validate': True,  'regex': 'parentheses'},
+                 {'name': 'port',         'enabled': True, 'validate': True,  'regex': 'parentheses'},
+                 {'name': 'port map',     'enabled': True, 'validate': True,  'regex': 'parentheses'},
+                 {'name': 'generic map',  'enabled': True, 'validate': True,  'regex': 'parentheses'},
+                 {'name': 'generate',     'enabled': True, 'validate': True,  'regex': r'(?im)^\s*((?P<id>\S+)\s*:\s*(for\s+[\S\s]+?\sin\s+[\S\s]+?\s|if\s+[\S\s]+?\s+)generate\s+[\S\s]+?end\s+generate(\s+(?P=id))?\s*;)'},
+                 {'name': 'instance',     'enabled': True, 'validate': True,  'regex': r'(?im)begin[\S\s]*?^\s*(\w+\s*:(?!\s*if\s+)(\s*component|\s*entity|\s*configuration)?\s+[\S\s]*?;)'}]
 
-        self.settings = [{'name': '--!',          'enabled': True,                    'regex': r'(--!.*)'},
-                         {'name': '@file',        'enabled': True,                    'regex': r'(--!\s+@file\s+.*)'},
-                         {'name': '@author',      'enabled': True,                    'regex': r'(--!\s+@author\s+.*)'},
-                         {'name': '@brief',       'enabled': True,                    'regex': r'(--!\s+@brief\s+.*)'},
-                         {'name': '@param',       'enabled': True,                    'regex': r'(--!\s+@param\s+.*)'},
-                         {'name': 'library',      'enabled': True, 'validate': True,  'regex': r'(?i)\s*(library\s+\S+\s*;)'},
-                         {'name': 'use',          'enabled': True, 'validate': True,  'regex': r'(?i)\s*(use\s+\S+[.]\S+\s*;)'},
-                         {'name': 'entity',       'enabled': True, 'validate': True,  'regex': r'(?im)^\s*(entity\s+(?P<id>\S+)\s+is[\S\s]+?end(\s+entity)?(\s+(?P=id))?\s*;)'},
-                         {'name': 'architecture', 'enabled': True, 'validate': True,  'regex': r'(?im)^\s*(architecture\s+(?P<id>\S+)\s+of\s+\S+\s+is[\S\s]+?begin[\S\s]+?end(\s+architecture)?(\s+(?P=id))?\s*;)'},
-                         {'name': 'generic',      'enabled': True, 'validate': True,  'regex': 'parentheses'},
-                         {'name': 'port',         'enabled': True, 'validate': True,  'regex': 'parentheses'},
-                         {'name': 'port map',     'enabled': True, 'validate': True,  'regex': 'parentheses'},
-                         {'name': 'generic map',  'enabled': True, 'validate': True,  'regex': 'parentheses'},
-                         {'name': 'generate',     'enabled': True, 'validate': True,  'regex': r'(?im)^\s*((?P<id>\S+)\s*:\s*(for\s+[\S\s]+?\sin\s+[\S\s]+?\s|if\s+[\S\s]+?\s+)generate\s+[\S\s]+?end\s+generate(\s+(?P=id))?\s*;)'},
-                         {'name': 'instance',     'enabled': True, 'validate': True,  'regex': r'(?im)begin[\S\s]*?^\s*(\w+\s*:(?!\s*if\s+)(\s*component|\s*entity|\s*configuration)?\s+[\S\s]*?;)'}]
 
-        # Reading a file for analysis
-        with open(argv) as f:
-            self.document = f.read()
-
-        # Get all '\n' positions
-        self.line_pos = []
-        for i, symbol in enumerate(self.document):
-            if symbol == '\n':
-                self.line_pos.append(i)
-
-    def analyze(self, document):
-        """Function to analyze input file."""
+    def analyze(self, document, settings):
+        """Function to analyze document."""
+        self.elements = {}
 
         # Creates all elements according to settings
-        for val in self.settings:
+        for val in settings:
             if val['enabled']:
                 name     = val['name']
                 validate = val['validate'] if 'validate' in val else None
@@ -93,16 +80,19 @@ class CheckVHDL(Check):
                         # The nearest element is parent
                         if parent_current.span[0] < parent.span[0]:
                             child.parent_id = parent.id
-
+        
         return self.elements
 
 
-    def print_demo(self, args):
+    def demo(self, elements):
+        """Function to print demo after analysis."""
+
         tab_len  = 4
         elem_map = []
+        demo     = []
 
         # Maps all elements and their boundaries
-        for element in self.elements.values():
+        for element in elements.values():
             lines = self.span_to_lines(element.span, self.line_pos)
             
             elem_map.append([element.span[0], element, 0])
@@ -184,23 +174,27 @@ class CheckVHDL(Check):
                 name = element.ending
             
             if element.validate is not None:
-                print("{}{c0}{:{w}}{c1} {}".format(tabs, name, note, w=width, c0=color0, c1=color1))
-            # print("{}{c0}{:{w}}{c1} {}".format(tabs, name, note, w=width, c0=color0, c1=color1))
+                demo.append("{}{c0}{:{w}}{c1} {}".format(tabs, name, note, w=width, c0=color0, c1=color1))
+    
+        return demo
 
 
-    def print_stats(self):
+    def stats(self, elements, settings):
         """Function to print statistics after analysis."""
 
-        for elem in self.settings:
+        stats = []
+        for elem in settings:
             if elem['enabled']:
                 count = 0
                 lines = []
-                for key, element in self.elements.items():
+                for element in elements.values():
                     if element.name == elem['name']:
                         count += 1
                         lines.append(self.span_to_lines(element.span, self.line_pos))
                     
-                print("{:8} {:12} found: {:2} {}".format("Element:", elem['name'], count, lines))
+                stats.append("{:8} {:12} found: {:2} {}".format("Element:", elem['name'], count, lines))
+        
+        return stats
 
 
     def locateBlock(self, document, pos):
@@ -231,7 +225,7 @@ class CheckVHDL(Check):
             pos += 1
 
         return document[begin: pos+1], (begin, pos+1)
-    
+
 
     def span_to_lines(self, span, line_pos):
         line_first = 0
@@ -248,7 +242,8 @@ class CheckVHDL(Check):
                 break
         
         return (line_first, line_last)
-    
+
+
     def set_text_color(self, r, g, b):
         return "\x1b[38;2;{};{};{}m".format(r, g, b)
 

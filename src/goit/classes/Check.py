@@ -3,14 +3,44 @@ class Check():
  
     More details.
     """
-    def __init__(self, argv):
-        with open(argv) as f:
+    file_path = ""
+    settings  = []
+    document  = ""
+    elements  = {}
+    line_pos  = []
+
+    def __init__(self, file_path, settings):
+        """The constructor."""
+        self.file_path = file_path
+        self.settings  = settings
+
+        # Reading a file for analysis
+        with open(file_path) as f:
             self.document = f.read()
 
+        # Get all '\n' positions
+        self.line_pos = []
+        for i, symbol in enumerate(self.document):
+            if symbol == '\n':
+                self.line_pos.append(i)
 
-    def analyze(self, document):
+
+    def analyze(self, document, settings):
         """Function to analyze document."""
-        return document
+        elements = {}
+        return elements
+    
+
+    def demo(self, elements):
+        """Function print out demo."""
+        demo = []
+        return demo
+    
+    
+    def stats(self):
+        """Function print out statistics."""
+        stats = []
+        return stats
 
 
     def search(self, document):
@@ -21,15 +51,7 @@ class Check():
     def result(self, document):
         """Function to make conclusions and return results."""
         return document
-
-
-    def print_demo(self, args):
-        """Function print out demo."""
-        return args
     
-    def print_stats(self):
-        """Function print out statistics."""
-        return []
 
     def test(self, document):
         """Simple test function."""
