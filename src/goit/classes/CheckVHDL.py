@@ -22,21 +22,21 @@ class CheckVHDL(Check):
     More details.
     """
 
-    settings  = [{'name': '--!',          'enabled': True,                    'regex': r'(--!.*)'},
-                 {'name': '@file',        'enabled': True,                    'regex': r'(--!\s+@file\s+.*)'},
-                 {'name': '@author',      'enabled': True,                    'regex': r'(--!\s+@author\s+.*)'},
-                 {'name': '@brief',       'enabled': True,                    'regex': r'(--!\s+@brief\s+.*)'},
-                 {'name': '@param',       'enabled': True,                    'regex': r'(--!\s+@param\s+.*)'},
-                 {'name': 'library',      'enabled': True, 'validate': True,  'regex': r'(?i)\s*(library\s+\S+\s*;)'},
-                 {'name': 'use',          'enabled': True, 'validate': True,  'regex': r'(?i)\s*(use\s+\S+[.]\S+\s*;)'},
-                 {'name': 'entity',       'enabled': True, 'validate': True,  'regex': r'(?im)^\s*(entity\s+(?P<id>\S+)\s+is[\S\s]+?end(\s+entity)?(\s+(?P=id))?\s*;)'},
-                 {'name': 'architecture', 'enabled': True, 'validate': True,  'regex': r'(?im)^\s*(architecture\s+(?P<id>\S+)\s+of\s+\S+\s+is[\S\s]+?begin[\S\s]+?end(\s+architecture)?(\s+(?P=id))?\s*;)'},
-                 {'name': 'generic',      'enabled': True, 'validate': True,  'regex': 'parentheses'},
-                 {'name': 'port',         'enabled': True, 'validate': True,  'regex': 'parentheses'},
-                 {'name': 'port map',     'enabled': True, 'validate': True,  'regex': 'parentheses'},
-                 {'name': 'generic map',  'enabled': True, 'validate': True,  'regex': 'parentheses'},
-                 {'name': 'generate',     'enabled': True, 'validate': True,  'regex': r'(?im)^\s*((?P<id>\S+)\s*:\s*(for\s+[\S\s]+?\sin\s+[\S\s]+?\s|if\s+[\S\s]+?\s+)generate\s+[\S\s]+?end\s+generate(\s+(?P=id))?\s*;)'},
-                 {'name': 'instance',     'enabled': True, 'validate': True,  'regex': r'(?im)begin[\S\s]*?^\s*(\w+\s*:(?!\s*if\s+)(\s*component|\s*entity|\s*configuration)?\s+[\S\s]*?;)'}]
+    settings  = [{'name': '--!',          'enabled': True,                   'type': 'doc', 'regex': r'(--!.*)'},
+                 {'name': '@file',        'enabled': True,                   'type': 'doc', 'regex': r'(--!\s+@file\s+.*)'},
+                 {'name': '@author',      'enabled': True,                   'type': 'doc', 'regex': r'(--!\s+@author\s+.*)'},
+                 {'name': '@brief',       'enabled': True,                   'type': 'doc', 'regex': r'(--!\s+@brief\s+.*)'},
+                 {'name': '@param',       'enabled': True,                   'type': 'doc', 'regex': r'(--!\s+@param\s+.*)'},
+                 {'name': 'library',      'enabled': True, 'validate': True, 'type': 'cod', 'regex': r'(?i)\s*(library\s+\S+\s*;)'},
+                 {'name': 'use',          'enabled': True, 'validate': True, 'type': 'cod', 'regex': r'(?i)\s*(use\s+\S+[.]\S+\s*;)'},
+                 {'name': 'entity',       'enabled': True, 'validate': True, 'type': 'cod', 'regex': r'(?im)^\s*(entity\s+(?P<id>\S+)\s+is[\S\s]+?end(\s+entity)?(\s+(?P=id))?\s*;)'},
+                 {'name': 'architecture', 'enabled': True, 'validate': True, 'type': 'cod', 'regex': r'(?im)^\s*(architecture\s+(?P<id>\S+)\s+of\s+\S+\s+is[\S\s]+?begin[\S\s]+?end(\s+architecture)?(\s+(?P=id))?\s*;)'},
+                 {'name': 'generic',      'enabled': True, 'validate': True, 'type': 'cod', 'regex': 'parentheses'},
+                 {'name': 'port',         'enabled': True, 'validate': True, 'type': 'cod', 'regex': 'parentheses'},
+                 {'name': 'port map',     'enabled': True, 'validate': True, 'type': 'cod', 'regex': 'parentheses'},
+                 {'name': 'generic map',  'enabled': True, 'validate': True, 'type': 'cod', 'regex': 'parentheses'},
+                 {'name': 'generate',     'enabled': True, 'validate': True, 'type': 'cod', 'regex': r'(?im)^\s*((?P<id>\S+)\s*:\s*(for\s+[\S\s]+?\sin\s+[\S\s]+?\s|if\s+[\S\s]+?\s+)generate\s+[\S\s]+?end\s+generate(\s+(?P=id))?\s*;)'},
+                 {'name': 'instance',     'enabled': True, 'validate': True, 'type': 'cod', 'regex': r'(?im)begin[\S\s]*?^\s*(\w+\s*:(?!\s*if\s+)(\s*component|\s*entity|\s*configuration)?\s+[\S\s]*?;)'}]
 
 
     def analyze(self, document, settings):
@@ -48,6 +48,7 @@ class CheckVHDL(Check):
             if val['enabled']:
                 name     = val['name']
                 validate = val['validate'] if 'validate' in val else None
+                t        = val['type']
                 
                 # Composes a pattern to search for elements in a document
                 if val['regex'] == 'parentheses':
@@ -61,7 +62,7 @@ class CheckVHDL(Check):
                     else:
                         data, span = (result.group(1), result.span(1))
 
-                    element = Element(name, span, data, validate)
+                    element = Element(name, span, data, validate, t)
                     
                     self.elements[element.id] = element
 
@@ -116,7 +117,7 @@ class CheckVHDL(Check):
                     bwd_i -= 1
                     prev_element = elem_map_sorted[bwd_i][1]
                     
-                    if prev_element.name == "--!":
+                    if prev_element.type == "doc":
                         doc_bwd += 1
                     else:
                         break
@@ -127,7 +128,7 @@ class CheckVHDL(Check):
                     fwd_i += 1
                     next_element = elem_map_sorted[fwd_i][1]
                     
-                    if next_element.name == "--!":
+                    if next_element.type == "doc":
                         doc_fwd += 1
                     else:
                         # Documentation previously found was for a different element
