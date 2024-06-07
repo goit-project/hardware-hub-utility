@@ -41,6 +41,12 @@ class Check():
         """Function print out statistics."""
         stats = []
         return stats
+    
+
+    def compact(self, elements):
+        """Function to print compact file analysis result."""
+        compact = []
+        return compact
 
 
     def search(self, document):

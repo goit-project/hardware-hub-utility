@@ -10,24 +10,37 @@ def command_callback(args):
   if args.extension == "vhd":
     for path in args.paths:
       if path.endswith('.' + args.extension):
-        check    = CheckVHDL(path, CheckVHDL.settings)
+        check    = CheckVHDL(path, CheckVHDL.settings())
         elements = check.analyze(check.document, check.settings)
         
         if args.stats:
-          print("------------------------------------------------------------------------")
-          print("STATS: ", check.file_path)
-          print("------------------------------------------------------------------------")
+          header = "STATS: {}".format(check.file_path)
+          print("-" * len(header))
+          print(header)
+          print("-" * len(header))
+          
           for line in check.stats(elements, check.settings):
             print(line)
         
         if args.demo:
-          print("------------------------------------------------------------------------")
-          print("DEMO: ", check.file_path)
-          print("------------------------------------------------------------------------")
+          header = "DEMO: {}".format(check.file_path)
+          print("-" * len(header))
+          print(header)
+          print("-" * len(header))
+          
           for line in check.demo(elements):
             print(line)
 
-        del check
+        if args.compact:
+          header = "COMPACT: {}".format(check.file_path)
+          print("-" * len(header))
+          print(header)
+          print("-" * len(header))
+
+          for line in check.compact(elements):
+            print(line)
+
+        # del check
 
 
 def add_command(subcommands, subparsers):
@@ -53,6 +66,7 @@ def add_command(subcommands, subparsers):
   parser.add_argument("-e", dest="extension", required=False, help="chooses how to interpret the file", default="vhd", choices=["vhd", "py"])
   parser.add_argument("-d", "--demo",  dest="demo",  required=False, help="prints the pseudo-structure of the file", action='store_true')
   parser.add_argument("-s", "--stats", dest="stats", required=False, help="prints the statistics of found commands and elements", action='store_true')
+  parser.add_argument("-c", "--compact", dest="compact", required=False, help="prints compact file analysis result", action='store_true')
 
 
 def valid_path(parser, file_path):

@@ -6,15 +6,20 @@ from goit.classes.Check import Check
 class Element():
     id_iter = itertools.count(1)
 
-    def __init__(self, name = "", span = (0,0), data = "", validate = None):
-        self.__dict__   = dict(vars())           
-        self.id         = next(Element.id_iter)
-        self.parent_id  = 0
-        self.depth      = 0
-        self.ending     = "{} end".format(name)
-        self.color      = ['\x1b[38;2;0;0;0m', '\x1b[0m']
-        self.note       = ""
-        self.note_color = ['\x1b[38;2;0;0;0m', '\x1b[0m']
+    def __init__(self, name = "", span = (0,0), data = "", validate = None, type = ""):
+        self.name       = name                              # Name of the element from the configuration
+        self.span       = span                              # Element span in the document
+        self.data       = data                              # Element data 
+        self.validate   = validate                          # If True the element must be documented and a search will be performed
+        self.type       = type                              # There are two types of elements: documentation and code
+        self.id         = next(Element.id_iter)             # Unique element identifier
+        self.parent_id  = 0                                 # Parent identifier
+        self.doc_id     = []                                # List of documentation IDs for this element
+        self.depth      = 0                                 # Element depth
+        self.end        = "{} end".format(name)             # End of element if it contains others
+        self.color      = ['\x1b[38;2;0;0;0m', '\x1b[0m']   # Element color
+        self.note       = ""                                # Documentation conclusions if validate == True
+        self.note_color = ['\x1b[38;2;0;0;0m', '\x1b[0m']   # Conclusions color
 
 class CheckVHDL(Check):
     """Documentation for a class.
@@ -22,54 +27,84 @@ class CheckVHDL(Check):
     More details.
     """
 
-    settings  = [{'name': '--!',          'enabled': True,                   'type': 'doc', 'regex': r'(--!.*)'},
-                 {'name': '@file',        'enabled': True,                   'type': 'doc', 'regex': r'(--!\s+@file\s+.*)'},
-                 {'name': '@author',      'enabled': True,                   'type': 'doc', 'regex': r'(--!\s+@author\s+.*)'},
-                 {'name': '@brief',       'enabled': True,                   'type': 'doc', 'regex': r'(--!\s+@brief\s+.*)'},
-                 {'name': '@param',       'enabled': True,                   'type': 'doc', 'regex': r'(--!\s+@param\s+.*)'},
-                 {'name': 'library',      'enabled': True, 'validate': True, 'type': 'cod', 'regex': r'(?i)\s*(library\s+\S+\s*;)'},
-                 {'name': 'use',          'enabled': True, 'validate': True, 'type': 'cod', 'regex': r'(?i)\s*(use\s+\S+[.]\S+\s*;)'},
-                 {'name': 'entity',       'enabled': True, 'validate': True, 'type': 'cod', 'regex': r'(?im)^\s*(entity\s+(?P<id>\S+)\s+is[\S\s]+?end(\s+entity)?(\s+(?P=id))?\s*;)'},
-                 {'name': 'architecture', 'enabled': True, 'validate': True, 'type': 'cod', 'regex': r'(?im)^\s*(architecture\s+(?P<id>\S+)\s+of\s+\S+\s+is[\S\s]+?begin[\S\s]+?end(\s+architecture)?(\s+(?P=id))?\s*;)'},
-                 {'name': 'generic',      'enabled': True, 'validate': True, 'type': 'cod', 'regex': 'parentheses'},
-                 {'name': 'port',         'enabled': True, 'validate': True, 'type': 'cod', 'regex': 'parentheses'},
-                 {'name': 'port map',     'enabled': True, 'validate': True, 'type': 'cod', 'regex': 'parentheses'},
-                 {'name': 'generic map',  'enabled': True, 'validate': True, 'type': 'cod', 'regex': 'parentheses'},
-                 {'name': 'generate',     'enabled': True, 'validate': True, 'type': 'cod', 'regex': r'(?im)^\s*((?P<id>\S+)\s*:\s*(for\s+[\S\s]+?\sin\s+[\S\s]+?\s|if\s+[\S\s]+?\s+)generate\s+[\S\s]+?end\s+generate(\s+(?P=id))?\s*;)'},
-                 {'name': 'instance',     'enabled': True, 'validate': True, 'type': 'cod', 'regex': r'(?im)begin[\S\s]*?^\s*(\w+\s*:(?!\s*if\s+)(\s*component|\s*entity|\s*configuration)?\s+[\S\s]*?;)'}]
+    def settings(settings = None):
+        # name      mandatory entry | name of element
+        # type      mandatory entry | doc - documentation, cod - code
+        # args      mandatory entry | 
+        # enabled   optional entry  | default will be True
+        # validate  optional entry  | default will be False
+        # fun       optional entry  | default will be None
+        if settings is None:
+            settings = { '--!'          :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'(--!.*)']},
+                         '@file'        :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'--!\s*(@file\s+.*)']},
+                         '@author'      :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'--!\s*(@author\s+.*)']},
+                         '@brief'       :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'--!\s*(@brief\s+.*)']},
+                         '@param'       :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'--!\s*(@param\s+.*)']},
+                         'library'      :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?i)\s*(library\s+\S+\s*;)']},
+                         'use'          :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?i)\s*(use\s+\S+[.]\S+\s*;)']},
+                         'entity'       :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^\s*(entity\s+(?P<id>\S+)\s+is[\S\s]+?end(\s+entity)?(\s+(?P=id))?\s*;)']},
+                         'architecture' :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^\s*(architecture\s+(?P<id>\S+)\s+of\s+\S+\s+is[\S\s]+?begin[\S\s]+?end(\s+architecture)?(\s+(?P=id))?\s*;)']},
+                         'generic'      :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?i)\s*(generic\s*\()']},
+                         'port'         :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?i)\s*(port\s*\()']},
+                         'port map'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?i)\s*(port\s+map\s*\()']},
+                         'generic map'  :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?i)\s*(generic\s+map\s*\()']},
+                         'generate'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^\s*((?P<id>\S+)\s*:\s*(for\s+[\S\s]+?\sin\s+[\S\s]+?\s|if\s+[\S\s]+?\s+)generate\s+[\S\s]+?end\s+generate(\s+(?P=id))?\s*;)']},
+                         'instance'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)begin[\S\s]*?^\s*(\w+\s*:(?!\s*if\s+)(\s*component|\s*entity|\s*configuration)?\s+[\S\s]*?;)']},
+                         'port_signal'  :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_in,  'args': [r'(?i)\s*(\w+\s*:\s*(in|out|inout|buffer|linkage)?\s+[\S\s]+?)(\s+:=\s+[\S\s]+?)?\s*(;|--|\)\s*)', ['port']]},
+                         'generic_param':{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_in,  'args': [r'(?i)\s*(\w+\s*:\s*[\S\s]+?(\s+:=\s+[\S\s]+?)?)\s*(;|--|\)\s*)', ['generic']]},
+                        }
 
+        return settings
 
     def analyze(self, document, settings):
         """Function to analyze document."""
-        self.elements = {}
+        self.elements   = {}
+        Element.id_iter = itertools.count(1)
 
         # Creates all elements according to settings
-        for val in settings:
-            if val['enabled']:
-                name     = val['name']
-                validate = val['validate'] if 'validate' in val else None
-                t        = val['type']
-                
+        for name, entry in settings.items():
+            e_enabled = entry['enabled'] if 'enabled' in entry else True
+            
+            if e_enabled:
+                e_name  = name
+                e_valid = entry['validate'] if 'validate' in entry else False
+                e_func  = entry['fun'] if 'fun' in entry else None
+                e_args  = entry['args']
+                e_type  = entry['type']
+                e_regex = e_args[0]
+                e_names = e_args[1] if 1 < len(e_args) else None
+
                 # Composes a pattern to search for elements in a document
-                if val['regex'] == 'parentheses':
-                    pattern = re.compile(r'(?i)\s*('+name+r'\s*\(.*)')
+                pattern = re.compile(e_regex)
+
+                if e_func == CheckVHDL.locate_end:
+                    for result in pattern.finditer(document):
+                        data, span = e_func(document, result.span(1))
+                        element = Element(e_name, span, data, e_valid, e_type)
+                        self.elements[element.id] = element
+                
+                elif e_func == CheckVHDL.locate_in:
+                    for name in e_names: 
+                        prt  = settings[name]
+                        patr = re.compile(prt['args'][0])
+
+                        for res in patr.finditer(document):
+                            elem_data, elem_span = CheckVHDL.locate_end(document, res.span(1))
+                            
+                            for res_p in pattern.finditer(elem_data):
+                                data, span = (res_p.group(1), (elem_span[0] + res_p.span(1)[0], elem_span[0] + res_p.span(1)[1]))
+                                element = Element(e_name, span, data, e_valid, e_type)
+                                self.elements[element.id] = element
                 else:
-                    pattern = re.compile(val['regex'])
-
-                for result in pattern.finditer(document):
-                    if val['regex'] == 'parentheses':
-                        data, span = self.locateBlock(document, result.span(1)[0])
-                    else:
+                    for result in pattern.finditer(document):
                         data, span = (result.group(1), result.span(1))
-
-                    element = Element(name, span, data, validate, t)
-                    
-                    self.elements[element.id] = element
+                        element = Element(e_name, span, data, e_valid, e_type)
+                        self.elements[element.id] = element                
 
         # Sets the depth and parent id for all newly created elements
         for child in self.elements.values():
             for parent in self.elements.values():
-                # The element is inside another element
+                # The child element is inside another element
                 if parent.span[0] < child.span[0] and child.span[1] < parent.span[1]:
                     child.depth += 1
                     
@@ -81,7 +116,52 @@ class CheckVHDL(Check):
                         # The nearest element is parent
                         if parent_current.span[0] < parent.span[0]:
                             child.parent_id = parent.id
-        
+
+        # Sorts elements by position in the file
+        elements_sorted = sorted(self.elements.items(), key=lambda item: item[1].span[0])
+
+        # Searches for documentation and adds its ID to the list
+        for i, (_, element) in enumerate(elements_sorted):            
+            if element.validate and element.type == "cod":
+                # Looking for documentation before the element
+                rear_i = i
+                while 0 < rear_i:
+                    rear_i -= 1
+                    prev_element = elements_sorted[rear_i][1]
+                    
+                    if 0 < rear_i - 1:
+                        prev_prev_element = elements_sorted[rear_i-1][1]
+                        lines_prev_prev   = self.span_to_lines(prev_prev_element.span, self.line_pos)
+                        lines_prev        = self.span_to_lines(prev_element.span, self.line_pos)
+
+                        # The documentation is on the same line as the other code
+                        if prev_prev_element.type == "cod" and lines_prev_prev[1] == lines_prev[1]:
+                            break
+
+                    if prev_element.type == "doc" and prev_element.parent_id == element.parent_id:
+                        element.doc_id.insert(0, prev_element.id)
+                    else:
+                        break
+
+                # Looking for documentation after the element on the same line (special case for port_signal)
+                if element.name == "port_signal": 
+                    front_i = i + 1 
+                    if front_i < len(elements_sorted):
+                        next_element = elements_sorted[front_i][1]
+                        
+                        # Checks if both are on the same line
+                        next_lines = self.span_to_lines(next_element.span, self.line_pos)
+                        lines      = self.span_to_lines(element.span, self.line_pos)
+
+                        if next_element.type == "doc" and next_lines == lines:
+                            element.doc_id.append(next_element.id)
+
+                # # Looking for documentation in @param (special case for generic_param)
+                # if element.name == "generic_param":
+                #     parent       = self.elements[element.parent_id]
+                #     grand_parent = self.elements[parent.parent_id]
+
+
         return self.elements
 
 
@@ -124,7 +204,7 @@ class CheckVHDL(Check):
 
                 # Looking for documentation inside the element
                 fwd_i = i
-                while fwd_i < len(elem_map_sorted):
+                while fwd_i + 1 < len(elem_map_sorted):
                     fwd_i += 1
                     next_element = elem_map_sorted[fwd_i][1]
                     
@@ -144,7 +224,11 @@ class CheckVHDL(Check):
                 if doc_bwd > 0 and doc_fwd > 0:
                     element.note_color[0] = self.set_text_color(0, 180, 0)
 
-                element.note = "{c0}--! Documented: {:} before, {:} inside{c1}".format(doc_bwd, doc_fwd, c0=element.note_color[0], c1=element.note_color[1])
+                if element.name == 'port_signal' or element.name == 'generic_param':
+                    element.note = "{c0}--! Documented: {:} before, {:} inside{c1} {}".format(doc_bwd, doc_fwd, element.data, c0=element.note_color[0], c1=element.note_color[1])
+                else:
+                    element.note = "{c0}--! Documented: {:} before, {:} inside{c1}".format(doc_bwd, doc_fwd, c0=element.note_color[0], c1=element.note_color[1])
+                # element.note = "{c0}--! Documented: {:} before, {:} inside{c1} doc_id: {}".format(doc_bwd, doc_fwd, element.doc_id, c0=element.note_color[0], c1=element.note_color[1])
 
         # Sets the color according to the depth of the element
         for elem in elem_map_sorted:
@@ -152,8 +236,8 @@ class CheckVHDL(Check):
             element.color[0] = self.set_text_color(0, element.depth * 80, 0)
 
         # Gets the object of the longest element and its length to format notes 
-        element = max(elem_map, key=lambda elem: len(elem[1].ending) + elem[1].depth * tab_len)[1]
-        max_len = len(element.ending) + element.depth * tab_len
+        element = max(elem_map, key=lambda elem: len(elem[1].end) + elem[1].depth * tab_len)[1]
+        max_len = len(element.end) + element.depth * tab_len
 
         # Formats output
         for elem in elem_map_sorted:
@@ -172,9 +256,9 @@ class CheckVHDL(Check):
                 if element.validate:
                     note = element.note
             else:
-                name = element.ending
+                name = element.end
             
-            if element.validate is not None:
+            if element.validate:
                 demo.append("{}{c0}{:{w}}{c1} {}".format(tabs, name, note, w=width, c0=color0, c1=color1))
     
         return demo
@@ -184,38 +268,102 @@ class CheckVHDL(Check):
         """Function to print statistics after analysis."""
 
         stats = []
-        for elem in settings:
+        for name, elem in settings.items():
             if elem['enabled']:
                 count = 0
                 lines = []
                 for element in elements.values():
-                    if element.name == elem['name']:
+                    if element.name == name:
                         count += 1
                         lines.append(self.span_to_lines(element.span, self.line_pos))
                     
-                stats.append("{:8} {:12} found: {:2} {}".format("Element:", elem['name'], count, lines))
+                stats.append("{:8} {:12} found: {:2} {}".format("Element:", name, count, lines))
         
         return stats
+    
+    def compact(self, elements):
+        """Function to print compact file analysis result."""
+
+        elements_sorted = sorted(self.elements.items(), key=lambda item: item[1].span[0])
+        # print(elements)
+
+        compact  = []
+        
+        for (id, element) in elements_sorted:
+            if element.name == "port_signal":
+                names = []
+                for i in element.doc_id:
+                    names.append(elements[i].name)
+                lines = self.span_to_lines(element.span, self.line_pos)
+                compact.append("{} {} {} {}".format(element.name, lines, element.doc_id, names))
 
 
-    def locateBlock(self, document, pos):
-        opened  = 0
-        comment = False
+            if element.name == "entity":
+                names = []
+                for i in element.doc_id:
+                    names.append(elements[i].name)
+                lines = self.span_to_lines(element.span, self.line_pos)
+                compact.append("{} {} {} {}".format(element.name, lines, element.doc_id, names))
+
+
+            if element.name == "generic_param":
+                parent       = self.elements[element.parent_id]
+                grand_parent = self.elements[parent.parent_id]
+
+                name_in_code  = element.data.split(' ')[0]
+
+                for i in grand_parent.doc_id:
+                    if elements[i].name == "@param":
+                        name_in_param = elements[i].data.split(' ')[1]
+
+                        if name_in_code.upper() == name_in_param.upper():
+                            element.doc_id.append(elements[i].id)
+                
+                names = []
+                for i in element.doc_id:
+                    names.append(elements[i].name)
+                lines = self.span_to_lines(element.span, self.line_pos)
+                compact.append("{} {} {} {}".format(element.name, lines, element.doc_id, names))
+                
+
+
+
+
+        # for (id, element) in elements_sorted:
+        #         compact.append("{:2} p: {:2} {:15} {}".format(element.id, element.parent_id, element.name, element.doc_id))
+
+        return compact
+
+
+    @staticmethod
+    def locate_in(document, span):
+        total = len(document)
+        pos   = span[1]
+
+        
+        return document[span[0]: pos+1], (span[0], pos+1)
+
+    
+    @staticmethod
+    def locate_end(document, span):
         total   = len(document)
-        begin   = pos
+        pos     = span[1]       # Location next to the opening
+        opened  = 1             # So, the block is already open
+        comment = False         # Flag for iteration in a comment
+
+        # Possible block boundaries
+        begin, end = {'(': ('(',')'),
+                      '[': ('[',']'),
+                      '{': ('{','}')}[document[span[1]-1]]
 
         while pos < total:
             if not comment:
+                if document[pos] == begin:
+                    opened += 1
+                if document[pos] == end:
+                    opened -= 1
                 if opened == 0:
-                    if document[pos] == '(':
-                        opened += 1
-                else:
-                    if document[pos] == '(':
-                        opened += 1
-                    if document[pos] == ')':
-                        opened -= 1
-                    if opened == 0:
-                        break
+                    break
 
                 if document[pos: pos+2] == '--':
                     comment = True
@@ -225,7 +373,7 @@ class CheckVHDL(Check):
 
             pos += 1
 
-        return document[begin: pos+1], (begin, pos+1)
+        return document[span[0]: pos+1], (span[0], pos+1)
 
 
     def span_to_lines(self, span, line_pos):
