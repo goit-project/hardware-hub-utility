@@ -50,8 +50,8 @@ class CheckVHDL(Check):
                          'generic map'  :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?i)\s*(generic\s+map\s*\()']},
                          'generate'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^\s*((?P<id>\S+)\s*:\s*(for\s+[\S\s]+?\sin\s+[\S\s]+?\s|if\s+[\S\s]+?\s+)generate\s+[\S\s]+?end\s+generate(\s+(?P=id))?\s*;)']},
                          'instance'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)begin[\S\s]*?^\s*(\w+\s*:(?!\s*if\s+)(\s*component|\s*entity|\s*configuration)?\s+[\S\s]*?;)']},
-                         'port_signal'  :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_in,  'args': [r'(?i)\s*(\w+\s*:\s*(in|out|inout|buffer|linkage)?\s+[\S\s]+?)(\s+:=\s+[\S\s]+?)?\s*(;|--|\)\s*)', ['port']]},
-                         'generic_param':{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_in,  'args': [r'(?i)\s*(\w+\s*:\s*[\S\s]+?(\s+:=\s+[\S\s]+?)?)\s*(;|--|\)\s*)', ['generic']]},
+                         'port_signal'  :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_in,  'args': [r'(?im)^(?:(?!--).)*?(\w+\s*:\s*(in|out|inout|buffer|linkage)?\s+[\S\s]+?)(\s+:=\s+[\S\s]+?)?\s*(?:;|--|\)\s*;)', ['port']]},
+                         'generic_param':{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_in,  'args': [r'(?im)^(?:(?!--).)*?(\w+\s*:\s*[\S\s]+?(\s+:=\s+[\S\s]+?)?)\s*(?:;|--|\)\s*;)', ['generic']]},
                         }
 
         return settings
@@ -157,9 +157,18 @@ class CheckVHDL(Check):
                             element.doc_id.append(next_element.id)
 
                 # # Looking for documentation in @param (special case for generic_param)
-                # if element.name == "generic_param":
-                #     parent       = self.elements[element.parent_id]
-                #     grand_parent = self.elements[parent.parent_id]
+                if element.name == "generic_param":
+                    parent       = self.elements[element.parent_id]
+                    grand_parent = self.elements[parent.parent_id]
+
+                    name_in_code = element.data.split(' ')[0]
+
+                    for i in grand_parent.doc_id:
+                        if self.elements[i].name == "@param":
+                            name_in_param = self.elements[i].data.split(' ')[1]
+
+                            if name_in_code.upper() == name_in_param.upper():
+                                element.doc_id.append(self.elements[i].id)
 
 
         return self.elements
@@ -285,52 +294,71 @@ class CheckVHDL(Check):
         """Function to print compact file analysis result."""
 
         elements_sorted = sorted(self.elements.items(), key=lambda item: item[1].span[0])
-        # print(elements)
 
-        compact  = []
-        
+        compact = {}
         for (id, element) in elements_sorted:
-            if element.name == "port_signal":
-                names = []
-                for i in element.doc_id:
-                    names.append(elements[i].name)
-                lines = self.span_to_lines(element.span, self.line_pos)
-                compact.append("{} {} {} {}".format(element.name, lines, element.doc_id, names))
+            if element.name == "@author":
+                # names = []
+                # lines = self.span_to_lines(element.span, self.line_pos)
+                # compact.append("{} {} {} {}".format(element.name, lines, element.doc_id, names))
+                # compact[element.name] = " ".join(element.data.split(' ')[1:])
 
-
-            if element.name == "entity":
-                names = []
-                for i in element.doc_id:
-                    names.append(elements[i].name)
-                lines = self.span_to_lines(element.span, self.line_pos)
-                compact.append("{} {} {} {}".format(element.name, lines, element.doc_id, names))
-
-
-            if element.name == "generic_param":
-                parent       = self.elements[element.parent_id]
-                grand_parent = self.elements[parent.parent_id]
-
-                name_in_code  = element.data.split(' ')[0]
-
-                for i in grand_parent.doc_id:
-                    if elements[i].name == "@param":
-                        name_in_param = elements[i].data.split(' ')[1]
-
-                        if name_in_code.upper() == name_in_param.upper():
-                            element.doc_id.append(elements[i].id)
+                author = " ".join(element.data.split(' ')[1:])
                 
+                if element.name in compact.keys():
+                    compact[element.name].append(author)
+                else:
+                    compact[element.name] = [author]
+
+
+            elif element.name == "entity":
+                # names = []
+                # for i in element.doc_id:
+                #     names.append(elements[i].name)
+                # lines = self.span_to_lines(element.span, self.line_pos)
+                # compact.append("{} {} {} {}".format(element.name, lines, element.doc_id, names))
+                doc_key = "@brief"
+                doc_val = 0
+                for i in element.doc_id:
+                    if elements[i].name == "@brief":
+                        doc_val = 1
+  
+                if element.name in compact.keys():
+                    compact[element.name].append({doc_key : doc_val})
+                else:
+                    compact[element.name] = [{doc_key : doc_val}]
+                    
+
+            
+            elif element.name == "port_signal" or element.name == "generic_param":
+                # names = []
+                # for i in element.doc_id:
+                #     names.append(elements[i].name)
+                # lines = self.span_to_lines(element.span, self.line_pos)
+                # compact.append("{} {} {} {}".format(element.name, lines, element.doc_id, names))
+                total = 0
+                docum = 0
+                if element.name in compact.keys():
+                    total, docum = compact[element.name]
+
+                total += 1
+                if 0 < len(element.doc_id):
+                    docum += 1
+
+                compact[element.name] = (total, docum)
+
+
+                # if element.name in compact.keys():
+                #     compact[element.name].append({doc_key : doc_val})
+                # else:
+                #     compact[element.name] = [{doc_key : doc_val}]
+
+            elif element.name == "generic_param":                
                 names = []
                 for i in element.doc_id:
                     names.append(elements[i].name)
-                lines = self.span_to_lines(element.span, self.line_pos)
-                compact.append("{} {} {} {}".format(element.name, lines, element.doc_id, names))
-                
-
-
-
-
-        # for (id, element) in elements_sorted:
-        #         compact.append("{:2} p: {:2} {:15} {}".format(element.id, element.parent_id, element.name, element.doc_id))
+                # lines = self.span_to_lines(element.span, self.line_pos)
+                # compact.append("{} {} {} {}".format(element.name, lines, element.doc_id, names))
 
         return compact
 
@@ -357,16 +385,18 @@ class CheckVHDL(Check):
                       '{': ('{','}')}[document[span[1]-1]]
 
         while pos < total:
+            if document[pos: pos+2] == '--':
+                comment = True
+            
             if not comment:
-                if document[pos] == begin:
-                    opened += 1
-                if document[pos] == end:
-                    opened -= 1
-                if opened == 0:
-                    break
-
-                if document[pos: pos+2] == '--':
-                    comment = True
+                if 0 < opened:
+                    if document[pos] == begin:
+                        opened += 1
+                    if document[pos] == end:
+                        opened -= 1
+                else:
+                    if document[pos] == ';':
+                        break
             else:
                 if document[pos] == '\n':
                     comment = False

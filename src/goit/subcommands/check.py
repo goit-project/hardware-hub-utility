@@ -32,15 +32,63 @@ def command_callback(args):
             print(line)
 
         if args.compact:
+          data    = check.compact(elements)
+          res_map = {0: "no", 1: "yes"}
+          c0_map  = {'r':'\x1b[38;2;180;0;0m', 'y':'\x1b[38;2;180;180;0m', 'g':'\x1b[38;2;0;180;0m'}
+          c1      = '\x1b[0m'
+
           header = "COMPACT: {}".format(check.file_path)
           print("-" * len(header))
           print(header)
-          print("-" * len(header))
 
-          for line in check.compact(elements):
-            print(line)
+          author = 0
+          if "@author" in data.keys():
+            author = "{:13}: {c0}{}{c1}".format("author", ", ".join(data["@author"]), c0=c0_map["g"], c1=c1)
+          else:
+            author = "{:13}: {c0}{}{c1}".format("author", res_map[author], c0=c0_map["r"], c1=c1)
+          print(author)
 
-        # del check
+          entity   = 0
+          brief    = 0
+          detailed = 0
+          if "entity" in data.keys():
+            for entry in data["entity"]:
+              brief    = entry["@brief"]    if "@brief"    in entry.keys() else brief
+              detailed = entry["@detailed"] if "@detailed" in entry.keys() else detailed
+
+              entity = "entity:\n    {:9}: {}\n    {:9}: {}".format("brief", res_map[brief], "detailed", res_map[detailed])
+              print(entity)
+          else:
+            entity = "entity: {}".format(res_map[entity])
+            print(entity)
+
+          param = 0
+          if "generic_param" in data.keys():
+            tot, doc = data["generic_param"]
+            if doc == 0:
+              param = "{:13}: {c0}{}{c1}".format("generic_param", str(tot)+"/"+str(doc), c0=c0_map["r"], c1=c1)
+            elif doc < tot:
+              param = "{:13}: {c0}{}{c1}".format("generic_param", str(tot)+"/"+str(doc), c0=c0_map["y"], c1=c1)
+            else:
+              param = "{:13}: {c0}{}{c1}".format("generic_param", str(tot)+"/"+str(doc), c0=c0_map["g"], c1=c1)
+          else:
+            param = "{:13}: {c0}{}{c1}".format("generic_param", res_map[param], c0=c1, c1=c1)
+          print(param)
+          
+          signal = 0
+          if "port_signal" in data.keys():
+            tot, doc = data["port_signal"]
+            if doc == 0:
+              signal = "{:13}: {c0}{}{c1}".format("port_signal", str(tot)+"/"+str(doc), c0=c0_map["r"], c1=c1)
+            elif doc < tot:
+              signal = "{:13}: {c0}{}{c1}".format("port_signal", str(tot)+"/"+str(doc), c0=c0_map["y"], c1=c1)
+            else:
+              signal = "{:13}: {c0}{}{c1}".format("port_signal", str(tot)+"/"+str(doc), c0=c0_map["g"], c1=c1)
+          else:
+            signal = "{:13}: {c0}{}{c1}".format("port_signal", res_map[signal], c0=c1, c1=c1)
+          print(signal)
+
+          # print(check.compact(elements))
 
 
 def add_command(subcommands, subparsers):
