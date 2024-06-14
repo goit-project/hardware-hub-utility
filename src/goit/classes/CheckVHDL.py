@@ -291,76 +291,51 @@ class CheckVHDL(Check):
         return stats
     
     def compact(self, elements):
-        """Function to print compact file analysis result."""
+        """Function to summarize the results of file analysis in a compact form"""
 
+        # Sorts elements by location in the file using the starting position of the element
         elements_sorted = sorted(self.elements.items(), key=lambda item: item[1].span[0])
 
-        compact = {}
-        for (id, element) in elements_sorted:
+        result = {}
+        for (_, element) in elements_sorted:
+            # Checks if the document has @author
             if element.name == "@author":
-                # names = []
-                # lines = self.span_to_lines(element.span, self.line_pos)
-                # compact.append("{} {} {} {}".format(element.name, lines, element.doc_id, names))
-                # compact[element.name] = " ".join(element.data.split(' ')[1:])
-
                 author = " ".join(element.data.split(' ')[1:])
-                
-                if element.name in compact.keys():
-                    compact[element.name].append(author)
+
+                if element.name in result.keys():
+                    result[element.name].append(author)
                 else:
-                    compact[element.name] = [author]
+                    result[element.name] = [author]
 
-
+            # Checks if the entity has @brief
             elif element.name == "entity":
-                # names = []
-                # for i in element.doc_id:
-                #     names.append(elements[i].name)
-                # lines = self.span_to_lines(element.span, self.line_pos)
-                # compact.append("{} {} {} {}".format(element.name, lines, element.doc_id, names))
                 doc_key = "@brief"
                 doc_val = 0
-                for i in element.doc_id:
-                    if elements[i].name == "@brief":
+
+                for id in element.doc_id:
+                    if elements[id].name == doc_key:
                         doc_val = 1
   
-                if element.name in compact.keys():
-                    compact[element.name].append({doc_key : doc_val})
+                if element.name in result.keys():
+                    result[element.name].append({doc_key : doc_val})
                 else:
-                    compact[element.name] = [{doc_key : doc_val}]
-                    
+                    result[element.name] = [{doc_key : doc_val}]
 
-            
+            # Counts elements and their documentation
             elif element.name == "port_signal" or element.name == "generic_param":
-                # names = []
-                # for i in element.doc_id:
-                #     names.append(elements[i].name)
-                # lines = self.span_to_lines(element.span, self.line_pos)
-                # compact.append("{} {} {} {}".format(element.name, lines, element.doc_id, names))
-                total = 0
-                docum = 0
-                if element.name in compact.keys():
-                    total, docum = compact[element.name]
+                docum, total = (0, 0)
+
+                if element.name in result.keys():
+                    docum, total = result[element.name]
 
                 total += 1
+
                 if 0 < len(element.doc_id):
                     docum += 1
 
-                compact[element.name] = (total, docum)
+                result[element.name] = (docum, total)
 
-
-                # if element.name in compact.keys():
-                #     compact[element.name].append({doc_key : doc_val})
-                # else:
-                #     compact[element.name] = [{doc_key : doc_val}]
-
-            elif element.name == "generic_param":                
-                names = []
-                for i in element.doc_id:
-                    names.append(elements[i].name)
-                # lines = self.span_to_lines(element.span, self.line_pos)
-                # compact.append("{} {} {} {}".format(element.name, lines, element.doc_id, names))
-
-        return compact
+        return result
 
 
     @staticmethod
