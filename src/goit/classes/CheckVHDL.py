@@ -21,6 +21,19 @@ class Element():
         self.note       = ""                                # Documentation conclusions if validate == True
         self.note_color = ['\x1b[38;2;0;0;0m', '\x1b[0m']   # Conclusions color
 
+
+class Settings():
+    def __init__(self, name = "", entry = {}):
+        self.name    = name
+        self.enabled = entry['enabled'] if 'enabled' in entry else True
+        self.valid   = entry['validate'] if 'validate' in entry else False
+        self.func    = entry['fun'] if 'fun' in entry else None
+        self.args    = entry['args']
+        self.type    = entry['type']
+        self.regex   = self.args[0]
+        self.configs = self.args[1] if 1 < len(self.args) else None
+
+
 class CheckVHDL(Check):
     """Documentation for a class.
  
@@ -56,6 +69,7 @@ class CheckVHDL(Check):
 
         return config
 
+
     def analyze(self, document, config):
         """Function to analyze document."""
         self.elements   = {}
@@ -63,42 +77,34 @@ class CheckVHDL(Check):
 
         # Creates all elements according to configuration
         for name, entry in config.items():
-            e_enabled = entry['enabled'] if 'enabled' in entry else True
-            
-            if e_enabled:
-                e_name  = name
-                e_valid = entry['validate'] if 'validate' in entry else False
-                e_func  = entry['fun'] if 'fun' in entry else None
-                e_args  = entry['args']
-                e_type  = entry['type']
-                e_regex = e_args[0]
-                e_names = e_args[1] if 1 < len(e_args) else None
+            set = Settings(name, entry)
 
+            if set.enabled:
                 # Composes a pattern to search for elements in a document
-                pattern = re.compile(e_regex)
+                pattern = re.compile(set.regex)
 
-                if e_func == CheckVHDL.locate_end:
+                if set.func == CheckVHDL.locate_end:
                     for result in pattern.finditer(document):
-                        data, span = e_func(document, result.span(1))
-                        element = Element(e_name, span, data, e_valid, e_type)
+                        data, span = set.func(document, result.span(1))
+                        element    = Element(set.name, span, data, set.valid, set.type)
                         self.elements[element.id] = element
 
-                elif e_func == CheckVHDL.locate_in:
-                    for name in e_names: 
-                        parent_settings = config[name]
-                        parent_patern   = re.compile(parent_settings['args'][0])
+                elif set.func == CheckVHDL.locate_in:
+                    for name in set.configs:                        
+                        parent_set     = Settings(name, config[name])
+                        parent_pattern = re.compile(parent_set.regex)
 
-                        for res in patr.finditer(document):
-                            elem_data, elem_span = CheckVHDL.locate_end(document, res.span(1))
+                        for parent_result in parent_pattern.finditer(document):
+                            parent_data, parent_span = CheckVHDL.locate_end(document, parent_result.span(1))
                             
-                            for res_p in pattern.finditer(elem_data):
-                                data, span = (res_p.group(1), (elem_span[0] + res_p.span(1)[0], elem_span[0] + res_p.span(1)[1]))
-                                element = Element(e_name, span, data, e_valid, e_type)
+                            for result in pattern.finditer(parent_data):
+                                data, span = (result.group(1), (parent_span[0] + result.span(1)[0], parent_span[0] + result.span(1)[1]))
+                                element    = Element(set.name, span, data, set.valid, set.type)
                                 self.elements[element.id] = element
                 else:
                     for result in pattern.finditer(document):
                         data, span = (result.group(1), result.span(1))
-                        element = Element(e_name, span, data, e_valid, e_type)
+                        element    = Element(set.name, span, data, set.valid, set.type)
                         self.elements[element.id] = element                
 
         # Sets the depth and parent id for all newly created elements
