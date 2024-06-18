@@ -27,42 +27,42 @@ class CheckVHDL(Check):
     More details.
     """
 
-    def settings(settings = None):
+    def config(config = None):
         # name      mandatory entry | name of element
         # type      mandatory entry | doc - documentation, cod - code
         # args      mandatory entry | 
         # enabled   optional entry  | default will be True
         # validate  optional entry  | default will be False
         # fun       optional entry  | default will be None
-        if settings is None:
-            settings = { '--!'          :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'(--!.*)']},
-                         '@file'        :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'--!\s*(@file\s+.*)']},
-                         '@author'      :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'--!\s*(@author\s+.*)']},
-                         '@brief'       :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'--!\s*(@brief\s+.*)']},
-                         '@param'       :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'--!\s*(@param\s+.*)']},
-                         'library'      :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?i)\s*(library\s+\S+\s*;)']},
-                         'use'          :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?i)\s*(use\s+\S+[.]\S+\s*;)']},
-                         'entity'       :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^\s*(entity\s+(?P<id>\S+)\s+is[\S\s]+?end(\s+entity)?(\s+(?P=id))?\s*;)']},
-                         'architecture' :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^\s*(architecture\s+(?P<id>\S+)\s+of\s+\S+\s+is[\S\s]+?begin[\S\s]+?end(\s+architecture)?(\s+(?P=id))?\s*;)']},
-                         'generic'      :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?i)\s*(generic\s*\()']},
-                         'port'         :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?i)\s*(port\s*\()']},
-                         'port map'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?i)\s*(port\s+map\s*\()']},
-                         'generic map'  :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?i)\s*(generic\s+map\s*\()']},
-                         'generate'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^\s*((?P<id>\S+)\s*:\s*(for\s+[\S\s]+?\sin\s+[\S\s]+?\s|if\s+[\S\s]+?\s+)generate\s+[\S\s]+?end\s+generate(\s+(?P=id))?\s*;)']},
-                         'instance'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)begin[\S\s]*?^\s*(\w+\s*:(?!\s*if\s+)(\s*component|\s*entity|\s*configuration)?\s+[\S\s]*?;)']},
-                         'port_signal'  :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_in,  'args': [r'(?im)^(?:(?!--).)*?(\w+\s*:\s*(in|out|inout|buffer|linkage)?\s+[\S\s]+?)(\s+:=\s+[\S\s]+?)?\s*(?:;|--|\)\s*;)', ['port']]},
-                         'generic_param':{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_in,  'args': [r'(?im)^(?:(?!--).)*?(\w+\s*:\s*[\S\s]+?(\s+:=\s+[\S\s]+?)?)\s*(?:;|--|\)\s*;)', ['generic']]},
-                        }
+        if config is None:
+            config = { '--!'          :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'(--!.*)']},
+                       '@file'        :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'--!\s*(@file\s+.*)']},
+                       '@author'      :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'--!\s*(@author\s+.*)']},
+                       '@brief'       :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'--!\s*(@brief\s+.*)']},
+                       '@param'       :{'enabled': True, 'validate': False, 'type': 'doc', 'fun': None,                 'args': [r'--!\s*(@param\s+.*)']},
+                       'library'      :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^(?:(?!--).)*?(library\s+\S+\s*;)']},
+                       'use'          :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^(?:(?!--).)*?(use\s+\S+[.]\S+\s*;)']},
+                       'entity'       :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^(?:(?!--).)*?(entity\s+(?P<id>\S+)\s+is[\S\s]+?end(\s+entity)?(\s+(?P=id))?\s*;)']},
+                       'architecture' :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^(?:(?!--).)*?(architecture\s+(?P<id>\S+)\s+of\s+\S+\s+is[\S\s]+?begin[\S\s]+?end(\s+architecture)?(\s+(?P=id))?\s*;)']},
+                       'generic'      :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?im)^(?:(?!--).)*?(generic\s*\()']},
+                       'port'         :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?im)^(?:(?!--).)*?(port\s*\()']},
+                       'port map'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?im)^(?:(?!--).)*?(port\s+map\s*\()']},
+                       'generic map'  :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?im)^(?:(?!--).)*?(generic\s+map\s*\()']},
+                       'generate'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^(?:(?!--).)*?((?P<id>\S+)\s*:\s*(for\s+[\S\s]+?\sin\s+[\S\s]+?\s|if\s+[\S\s]+?\s+)generate\s+[\S\s]+?end\s+generate(\s+(?P=id))?\s*;)']},
+                       'instance'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^(?:(?!--).)*?begin[\S\s]*?^\s*(\w+\s*:(?!\s*if\s+)(\s*component|\s*entity|\s*configuration)?\s+[\S\s]*?;)']},
+                       'port_signal'  :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_in,  'args': [r'(?im)^(?:(?!--).)*?(\w+\s*:\s*(in|out|inout|buffer|linkage)?\s+[\S\s]+?)(\s+:=\s+[\S\s]+?)?\s*(?:;|--|\)\s*;)', ['port']]},
+                       'generic_param':{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_in,  'args': [r'(?im)^(?:(?!--).)*?(\w+\s*:\s*[\S\s]+?(\s+:=\s+[\S\s]+?)?)\s*(?:;|--|\)\s*;)', ['generic']]},
+                    }
 
-        return settings
+        return config
 
-    def analyze(self, document, settings):
+    def analyze(self, document, config):
         """Function to analyze document."""
         self.elements   = {}
         Element.id_iter = itertools.count(1)
 
-        # Creates all elements according to settings
-        for name, entry in settings.items():
+        # Creates all elements according to configuration
+        for name, entry in config.items():
             e_enabled = entry['enabled'] if 'enabled' in entry else True
             
             if e_enabled:
@@ -82,11 +82,11 @@ class CheckVHDL(Check):
                         data, span = e_func(document, result.span(1))
                         element = Element(e_name, span, data, e_valid, e_type)
                         self.elements[element.id] = element
-                
+
                 elif e_func == CheckVHDL.locate_in:
                     for name in e_names: 
-                        prt  = settings[name]
-                        patr = re.compile(prt['args'][0])
+                        parent_settings = config[name]
+                        parent_patern   = re.compile(parent_settings['args'][0])
 
                         for res in patr.finditer(document):
                             elem_data, elem_span = CheckVHDL.locate_end(document, res.span(1))
@@ -273,11 +273,11 @@ class CheckVHDL(Check):
         return demo
 
 
-    def stats(self, elements, settings):
+    def stats(self, elements, config):
         """Function to print statistics after analysis."""
 
         stats = []
-        for name, elem in settings.items():
+        for name, elem in config.items():
             if elem['enabled']:
                 count = 0
                 lines = []

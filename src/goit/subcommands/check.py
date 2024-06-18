@@ -10,8 +10,8 @@ def command_callback(args):
   if args.extension == "vhd":
     for path in args.paths:
       if path.endswith('.' + args.extension):
-        check    = CheckVHDL(path, CheckVHDL.settings())
-        elements = check.analyze(check.document, check.settings)
+        check    = CheckVHDL(path, CheckVHDL.config())
+        elements = check.analyze(check.document, check.config)
         
         if args.stats:
           header = "STATS: {}".format(check.file_path)
@@ -19,7 +19,7 @@ def command_callback(args):
           print(header)
           print("-" * len(header))
           
-          for line in check.stats(elements, check.settings):
+          for line in check.stats(elements, check.config):
             print(line)
         
         if args.demo:

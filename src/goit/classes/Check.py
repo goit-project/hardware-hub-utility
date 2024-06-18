@@ -4,15 +4,15 @@ class Check():
     More details.
     """
     file_path = ""
-    settings  = []
+    config    = []
     document  = ""
     elements  = {}
     line_pos  = []
 
-    def __init__(self, file_path, settings):
+    def __init__(self, file_path, config):
         """The constructor."""
         self.file_path = file_path
-        self.settings  = settings
+        self.config    = config
 
         # Reading a file for analysis
         with open(file_path) as f:
@@ -25,7 +25,7 @@ class Check():
                 self.line_pos.append(i)
 
 
-    def analyze(self, document, settings):
+    def analyze(self, document, config):
         """Function to analyze document."""
         elements = {}
         return elements
