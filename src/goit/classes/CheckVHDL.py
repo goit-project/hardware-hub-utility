@@ -162,19 +162,19 @@ class CheckVHDL(Check):
                         if next_element.type == "doc" and next_lines == lines:
                             element.doc_id.append(next_element.id)
 
-                # # Looking for documentation in @param (special case for generic_param)
+                # Looking for documentation in @param (special case for generic_param)
                 if element.name == "generic_param":
-                    parent       = self.elements[element.parent_id]
-                    grand_parent = self.elements[parent.parent_id]
+                    generic = self.elements[element.parent_id]
+                    entity  = self.elements[generic.parent_id]
 
                     name_in_code = element.data.split(' ')[0]
 
-                    for i in grand_parent.doc_id:
-                        if self.elements[i].name == "@param":
-                            name_in_param = self.elements[i].data.split(' ')[1]
+                    for id in entity.doc_id:
+                        if self.elements[id].name == "@param":
+                            name_in_param = self.elements[id].data.split(' ')[1]
 
                             if name_in_code.upper() == name_in_param.upper():
-                                element.doc_id.append(self.elements[i].id)
+                                element.doc_id.append(id)
 
 
         return self.elements
