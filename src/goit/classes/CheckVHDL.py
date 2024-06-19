@@ -183,99 +183,65 @@ class CheckVHDL(Check):
     def demo(self, elements):
         """Function to print demo after analysis."""
 
-        tab_len  = 4
-        elem_map = []
-        demo     = []
+        # Sorts elements by position in the file
+        elements_sorted = sorted(elements.values(), key=lambda item: item.span[0])
 
-        # Maps all elements and their boundaries
-        for element in elements.values():
-            lines = self.span_to_lines(element.span, self.line_pos)
-            
-            elem_map.append([element.span[0], element, 0])
-            
-            if lines[0] != lines[1]:
-                elem_map.append([element.span[1], element, 1])
-
-        # Sorts the data in the correct order, taking into account the location in the file
-        elem_map_sorted = sorted(elem_map, key=lambda elem: elem[0])
-
-        # Formats notes on doxygen documentation
-        for i, elem in enumerate(elem_map_sorted):
-            element = elem[1]
-            doc_bwd = 0
-            doc_fwd = 0
-            
-            if element.validate and elem[2] == 0:
-                # Looking for documentation before the element
-                bwd_i = i
-                while 0 < bwd_i:
-                    bwd_i -= 1
-                    prev_element = elem_map_sorted[bwd_i][1]
-                    
-                    if prev_element.type == "doc":
-                        doc_bwd += 1
-                    else:
-                        break
-
-                # Looking for documentation inside the element
-                fwd_i = i
-                while fwd_i + 1 < len(elem_map_sorted):
-                    fwd_i += 1
-                    next_element = elem_map_sorted[fwd_i][1]
-                    
-                    if next_element.type == "doc":
-                        doc_fwd += 1
-                    else:
-                        # Documentation previously found was for a different element
-                        if next_element != element:
-                            doc_fwd = 0
-                        break
-                
-                # Set the color depending on the availability of the documentation
-                if doc_bwd == 0 and doc_fwd == 0:
-                    element.note_color[0] = self.set_text_color(180, 0, 0)
-                if doc_bwd > 0 or doc_fwd > 0:
-                    element.note_color[0] = self.set_text_color(180, 180, 0)
-                if doc_bwd > 0 and doc_fwd > 0:
+        for element in elements_sorted:
+            # Checks documentation and formats notes
+            if element.validate:
+                if element.doc_id:
                     element.note_color[0] = self.set_text_color(0, 180, 0)
-
-                if element.name == 'port_signal' or element.name == 'generic_param':
-                    element.note = "{c0}--! Documented: {:} before, {:} inside{c1} {}".format(doc_bwd, doc_fwd, element.data, c0=element.note_color[0], c1=element.note_color[1])
                 else:
-                    element.note = "{c0}--! Documented: {:} before, {:} inside{c1}".format(doc_bwd, doc_fwd, c0=element.note_color[0], c1=element.note_color[1])
-                # element.note = "{c0}--! Documented: {:} before, {:} inside{c1} doc_id: {}".format(doc_bwd, doc_fwd, element.doc_id, c0=element.note_color[0], c1=element.note_color[1])
+                    element.note_color[0] = self.set_text_color(180, 0, 0)
 
-        # Sets the color according to the depth of the element
-        for elem in elem_map_sorted:
-            element = elem[1]
+                element.note = " --! Documented: {c0}{}{c1}".format(bool(element.doc_id), c0=element.note_color[0], c1=element.note_color[1])
+            
+            # Sets the color according to the depth of the element
             element.color[0] = self.set_text_color(0, element.depth * 80, 0)
 
         # Gets the object of the longest element and its length to format notes 
-        element = max(elem_map, key=lambda elem: len(elem[1].end) + elem[1].depth * tab_len)[1]
+        tab_len = 4
+        element = max(elements_sorted, key=lambda elem: len(elem.end) + elem.depth * tab_len)
         max_len = len(element.end) + element.depth * tab_len
 
+        # Helper class to improve readability
+        class FormatElement():
+            def __init__(self, element):
+                self.tabs  = "\t".expandtabs(tab_len) * element.depth
+                self.width = max_len - tab_len * element.depth
+                self.c0    = element.color[0]
+                self.c1    = element.color[1]
+
         # Formats output
-        for elem in elem_map_sorted:
-            element = elem[1]
-
-            tabs    = "\t".expandtabs(tab_len * element.depth)
-            name    = ""
-            note    = ""
-            width   = max_len - tab_len * element.depth
-            color0  = element.color[0]
-            color1  = element.color[1] 
-
-            if elem[2] == 0:
-                name = element.name
-
-                if element.validate:
-                    note = element.note
-            else:
-                name = element.end
-            
+        demo = []
+        for element, next_element in zip(elements_sorted, elements_sorted[1:] + [elements_sorted[0]]):
+            # Creates a record with the beginning of the element
             if element.validate:
-                demo.append("{}{c0}{:{w}}{c1} {}".format(tabs, name, note, w=width, c0=color0, c1=color1))
-    
+                fmt = FormatElement(element)
+                demo.append("{}{c0}{:{w}}{c1}{}".format(fmt.tabs, element.name, element.note, w=fmt.width, c0=fmt.c0, c1=fmt.c1))
+
+            # Creates a records with the end of the element
+            if element != elements_sorted[-1]:
+                # A smaller depth of the next element means that the bounding elements must be closed
+                if next_element.depth < element.depth:
+                    current_depth = element.depth
+                    parent        = elements[element.parent_id]
+                    
+                    # Closes all elements until the level is the same as the next element
+                    while next_element.depth < current_depth: 
+                        fmt = FormatElement(parent)
+                        demo.append("{}{c0}{:{w}}{c1}".format(fmt.tabs, parent.end, w=fmt.width, c0=fmt.c0, c1=fmt.c1))
+
+                        if parent.parent_id != 0:
+                            parent = elements[parent.parent_id]
+
+                        current_depth -= 1
+            else:
+                if element.parent_id != 0:
+                    parent = elements[element.parent_id]
+                    fmt    = FormatElement(parent)
+                    demo.append("{}{c0}{:{w}}{c1}".format(fmt.tabs, parent.end, w=fmt.width, c0=fmt.c0, c1=fmt.c1))
+
         return demo
 
 
