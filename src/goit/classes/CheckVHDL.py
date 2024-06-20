@@ -217,8 +217,8 @@ class CheckVHDL(Check):
         for element, next_element in zip(elements_sorted, elements_sorted[1:] + [elements_sorted[0]]):
             # Creates a record with the beginning of the element
             if element.validate:
-                fmt = FormatElement(element)
-                demo.append("{}{c0}{:{w}}{c1}{}".format(fmt.tabs, element.name, element.note, w=fmt.width, c0=fmt.c0, c1=fmt.c1))
+            fmt = FormatElement(element)
+            demo.append("{}{c0}{:{w}}{c1}{}".format(fmt.tabs, element.name, element.note, w=fmt.width, c0=fmt.c0, c1=fmt.c1))
 
             # A smaller depth for the next element means that a record must be created with the end of the element
             if next_element.depth < element.depth:
