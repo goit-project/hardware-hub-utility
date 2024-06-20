@@ -214,23 +214,24 @@ class CheckVHDL(Check):
         demo = []
         for element, next_element in zip(elements_sorted, elements_sorted[1:] + [elements_sorted[0]]):
             # Creates a record with the beginning of the element
-            fmt = FormatElement(element)
-            demo.append("{}{c0}{:{w}}{c1}{}".format(fmt.tabs, element.name, element.note, w=fmt.width, c0=fmt.c0, c1=fmt.c1))
+            if element.type == "cod":
+                fmt = FormatElement(element)
+                demo.append("{}{c0}{:{w}}{c1}{}".format(fmt.tabs, element.name, element.note, w=fmt.width, c0=fmt.c0, c1=fmt.c1))
 
-            # A smaller depth for the next element means that a record must be created with the end of the element
-            if next_element.depth < element.depth:
-                current_depth = element.depth
-                parent        = elements[element.parent_id]
-                
-                # Closes all elements until the level is the same as the next element
-                while next_element.depth < current_depth: 
-                    fmt = FormatElement(parent)
-                    demo.append("{}{c0}{:{w}}{c1}".format(fmt.tabs, parent.end, w=fmt.width, c0=fmt.c0, c1=fmt.c1))
+                # A smaller depth for the next element means that a record must be created with the end of the element
+                if next_element.depth < element.depth:
+                    current_depth = element.depth
+                    parent        = elements[element.parent_id]
+                    
+                    # Closes all elements until the level is the same as the next element
+                    while next_element.depth < current_depth: 
+                        fmt = FormatElement(parent)
+                        demo.append("{}{c0}{:{w}}{c1}".format(fmt.tabs, parent.end, w=fmt.width, c0=fmt.c0, c1=fmt.c1))
 
-                    if parent.parent_id != 0:
-                        parent = elements[parent.parent_id]
+                        if parent.parent_id != 0:
+                            parent = elements[parent.parent_id]
 
-                    current_depth -= 1
+                        current_depth -= 1
 
         return demo
 
