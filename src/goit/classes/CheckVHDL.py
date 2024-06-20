@@ -72,6 +72,7 @@ class CheckVHDL(Check):
 
     def analyze(self, document, config):
         """Function to analyze document."""
+
         self.elements   = {}
         Element.id_iter = itertools.count(1)
 
@@ -95,9 +96,12 @@ class CheckVHDL(Check):
                         parent_set     = Settings(name, config[name])
                         parent_pattern = re.compile(parent_set.regex)
 
+                        # Finds all possible parent elements
                         for parent_result in parent_pattern.finditer(document):
-                            parent_data, parent_span = CheckVHDL.locate_end(document, parent_result.span(1))
+                            if parent_set.func == CheckVHDL.locate_end:
+                                parent_data, parent_span = parent_set.func(document, parent_result.span(1))
                             
+                            # Finds all elements in the parent data
                             for result in pattern.finditer(parent_data):
                                 data, span = (result.group(1), (parent_span[0] + result.span(1)[0], parent_span[0] + result.span(1)[1]))
                                 element    = Element(set.name, span, data, set.valid, set.type)
@@ -176,7 +180,6 @@ class CheckVHDL(Check):
 
                             if name_in_code.upper() == name_in_param.upper():
                                 element.doc_id.append(id)
-
 
         return self.elements
 
@@ -304,13 +307,9 @@ class CheckVHDL(Check):
 
     @staticmethod
     def locate_in(document, span):
-        total = len(document)
-        pos   = span[1]
+        pass
 
-        
-        return document[span[0]: pos+1], (span[0], pos+1)
 
-    
     @staticmethod
     def locate_end(document, span):
         total   = len(document)
@@ -364,5 +363,3 @@ class CheckVHDL(Check):
 
     def set_text_color(self, r, g, b):
         return "\x1b[38;2;{};{};{}m".format(r, g, b)
-
-
