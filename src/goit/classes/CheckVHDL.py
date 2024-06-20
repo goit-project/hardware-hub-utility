@@ -188,16 +188,14 @@ class CheckVHDL(Check):
 
         for element in elements_sorted:
             # Checks documentation and formats notes
-            if element.validate:
-                if element.doc_id:
-                    element.note_color[0] = self.set_text_color(0, 180, 0)
-                else:
-                    element.note_color[0] = self.set_text_color(180, 0, 0)
+            if element.validate:    
+                color = (0, 180, 0) if element.doc_id else (180, 0, 0)
 
-                element.note = " --! Documented: {c0}{}{c1}".format(bool(element.doc_id), c0=element.note_color[0], c1=element.note_color[1])
-            
-            # Sets the color according to the depth of the element
-            element.color[0] = self.set_text_color(0, element.depth * 80, 0)
+                element.note_color[0] = self.set_text_color(*color)
+                element.note          = " --! Documented: {c0}{}{c1}".format(bool(element.doc_id), c0=element.note_color[0], c1=element.note_color[1])
+
+                # Sets the color according to the depth of the element
+                element.color[0] = self.set_text_color(0, element.depth * 80, 0)
 
         # Gets the object of the longest element and its length to format notes 
         tab_len = 4
