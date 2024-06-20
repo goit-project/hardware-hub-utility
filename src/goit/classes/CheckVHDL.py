@@ -216,7 +216,6 @@ class CheckVHDL(Check):
         demo = []
         for element, next_element in zip(elements_sorted, elements_sorted[1:] + [elements_sorted[0]]):
             # Creates a record with the beginning of the element
-            if element.validate:
             fmt = FormatElement(element)
             demo.append("{}{c0}{:{w}}{c1}{}".format(fmt.tabs, element.name, element.note, w=fmt.width, c0=fmt.c0, c1=fmt.c1))
 
