@@ -31,7 +31,7 @@ class Settings():
         self.args    = entry['args']
         self.type    = entry['type']
         self.regex   = self.args[0]
-        self.configs = self.args[1] if 1 < len(self.args) else None
+        self.parents = self.args[1] if 1 < len(self.args) else None
 
 
 class CheckVHDL(Check):
@@ -90,7 +90,8 @@ class CheckVHDL(Check):
                         self.elements[element.id] = element
 
                 elif set.func == CheckVHDL.locate_in:
-                    for name in set.configs:                        
+                    # For each element from the list of parent names
+                    for name in set.parents:
                         parent_set     = Settings(name, config[name])
                         parent_pattern = re.compile(parent_set.regex)
 
