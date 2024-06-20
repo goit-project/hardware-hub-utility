@@ -125,19 +125,19 @@ class CheckVHDL(Check):
                             child.parent_id = parent.id
 
         # Sorts elements by position in the file
-        elements_sorted = sorted(self.elements.items(), key=lambda item: item[1].span[0])
+        elements_sorted = sorted(self.elements.values(), key=lambda item: item.span[0])
 
         # Searches for documentation and adds its ID to the list
-        for i, (_, element) in enumerate(elements_sorted):            
+        for i, element in enumerate(elements_sorted):            
             if element.validate and element.type == "cod":
                 # Looking for documentation before the element
                 rear_i = i
                 while 0 < rear_i:
                     rear_i -= 1
-                    prev_element = elements_sorted[rear_i][1]
+                    prev_element = elements_sorted[rear_i]
                     
                     if 0 < rear_i - 1:
-                        prev_prev_element = elements_sorted[rear_i-1][1]
+                        prev_prev_element = elements_sorted[rear_i-1]
                         lines_prev_prev   = self.span_to_lines(prev_prev_element.span, self.line_pos)
                         lines_prev        = self.span_to_lines(prev_element.span, self.line_pos)
 
@@ -154,7 +154,7 @@ class CheckVHDL(Check):
                 if element.name == "port_signal": 
                     front_i = i + 1 
                     if front_i < len(elements_sorted):
-                        next_element = elements_sorted[front_i][1]
+                        next_element = elements_sorted[front_i]
                         
                         # Checks if both are on the same line
                         next_lines = self.span_to_lines(next_element.span, self.line_pos)
