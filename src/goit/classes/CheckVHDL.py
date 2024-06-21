@@ -118,17 +118,18 @@ class CheckVHDL(Check):
         for child in self.elements.values():
             for parent in self.elements.values():
                 # The child element is inside another element
-                if parent.span[0] < child.span[0] and child.span[1] <= parent.span[1]:
-                    child.depth += 1
-                    
-                    if child.parent_id == 0:
-                        child.parent_id = parent.id
-                    else:
-                        parent_current = self.elements[child.parent_id]
+                if parent.type == "cod":
+                    if parent.span[0] < child.span[0] and child.span[0] <= parent.span[1]:
+                        child.depth += 1
                         
-                        # The nearest element is parent
-                        if parent_current.span[0] < parent.span[0]:
+                        if child.parent_id == 0:
                             child.parent_id = parent.id
+                        else:
+                            parent_current = self.elements[child.parent_id]
+                            
+                            # The nearest element is parent
+                            if parent_current.span[0] < parent.span[0]:
+                                child.parent_id = parent.id
 
         # Sorts elements by position in the file
         elements_sorted = sorted(self.elements.values(), key=lambda item: item.span[0])
