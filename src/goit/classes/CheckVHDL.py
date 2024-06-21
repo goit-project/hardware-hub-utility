@@ -62,8 +62,8 @@ class CheckVHDL(Check):
                        'port map'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?im)^(?:(?!--).)*?(port\s+map\s*\()']},
                        'generic map'  :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_end, 'args': [r'(?im)^(?:(?!--).)*?(generic\s+map\s*\()']},
                        'generate'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^(?:(?!--).)*?((?P<id>\S+)\s*:\s*(for\s+[\S\s]+?\sin\s+[\S\s]+?\s|if\s+[\S\s]+?\s+)generate\s+[\S\s]+?end\s+generate(\s+(?P=id))?\s*;)']},
-                       'instance'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': None,                 'args': [r'(?im)^(?:(?!--).)*?begin[\S\s]*?^\s*(\w+\s*:(?!\s*if\s+)(\s*component|\s*entity|\s*configuration)?\s+[\S\s]*?;)']},
-                       'port_signal'  :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_in,  'args': [r'(?im)^(?:(?!--).)*?(\w+\s*:\s*(in|out|inout|buffer|linkage)?\s+[\S\s]+?)(\s+:=\s+[\S\s]+?)?\s*(?:;|--|\)\s*;)', ['port']]},
+                       'instance'     :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_in,  'args': [r'(?im)^(?:(?!--).)*?(\w+\s*:\s*(component|entity|configuration){1}\s+[\S\s]*?;)', ['architecture']]},
+                       'port_signal'  :{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_in,  'args': [r'(?im)^(?:(?!--).)*?(\w+\s*:\s*(in|out|inout|buffer|linkage){1}\s+[\S\s]+?)(\s+:=\s+[\S\s]+?)?\s*(?:;|--|\)\s*;)', ['port']]},
                        'generic_param':{'enabled': True, 'validate': True,  'type': 'cod', 'fun': CheckVHDL.locate_in,  'args': [r'(?im)^(?:(?!--).)*?(\w+\s*:\s*[\S\s]+?(\s+:=\s+[\S\s]+?)?)\s*(?:;|--|\)\s*;)', ['generic']]},
                     }
 
@@ -100,7 +100,9 @@ class CheckVHDL(Check):
                         for parent_result in parent_pattern.finditer(document):
                             if parent_set.func == CheckVHDL.locate_end:
                                 parent_data, parent_span = parent_set.func(document, parent_result.span(1))
-                            
+                            else:
+                                parent_data, parent_span = (parent_result.group(1), parent_result.span(1))
+
                             # Finds all elements in the parent data
                             for result in pattern.finditer(parent_data):
                                 data, span = (result.group(1), (parent_span[0] + result.span(1)[0], parent_span[0] + result.span(1)[1]))
@@ -110,13 +112,13 @@ class CheckVHDL(Check):
                     for result in pattern.finditer(document):
                         data, span = (result.group(1), result.span(1))
                         element    = Element(set.name, span, data, set.valid, set.type)
-                        self.elements[element.id] = element                
+                        self.elements[element.id] = element
 
         # Sets the depth and parent id for all newly created elements
         for child in self.elements.values():
             for parent in self.elements.values():
                 # The child element is inside another element
-                if parent.span[0] < child.span[0] and child.span[1] < parent.span[1]:
+                if parent.span[0] < child.span[0] and child.span[1] <= parent.span[1]:
                     child.depth += 1
                     
                     if child.parent_id == 0:
@@ -333,8 +335,9 @@ class CheckVHDL(Check):
                     if document[pos] == end:
                         opened -= 1
                 else:
-                    if document[pos] == ';':
-                        break
+                    # if document[pos] == ';':
+                    #     break
+                    break
             else:
                 if document[pos] == '\n':
                     comment = False
