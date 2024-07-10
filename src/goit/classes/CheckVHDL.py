@@ -308,6 +308,57 @@ class CheckVHDL(Check):
 
         return result
 
+    def compact_print(self, data):
+        """Function to print the results in a compact form"""
+
+        res_map = {0: "no", 1: "yes"}
+
+        author = 0
+        if "@author" in data.keys():
+            author = "{:13}: {c0}{}{c1}".format("author", ", ".join(data["@author"]), c0=self.set_text_color('g'), c1=self.set_text_color('default'))
+        else:
+            author = "{:13}: {c0}{}{c1}".format("author", res_map[author], c0=self.set_text_color('r'), c1=self.set_text_color('default'))
+        print(author)
+
+        entity  = 0
+        brief   = 0
+        details = 0
+        if "entity" in data.keys():
+            for entry in data["entity"]:
+                brief   = entry["@brief"]   if "@brief"   in entry.keys() else brief
+                details = entry["@details"] if "@details" in entry.keys() else details
+
+                color_br  = self.set_text_color('r') if not brief   else self.set_text_color('g')
+                color_det = self.set_text_color('r') if not details else self.set_text_color('g')
+
+                entity =  "entity:\n"
+                entity += "    {:9}: {c}{}{c_def}\n".format("brief", res_map[brief],   c=color_br,  c_def=self.set_text_color('default'))
+                entity += "    {:9}: {c}{}{c_def}".format("details", res_map[details], c=color_det, c_def=self.set_text_color('default'))
+                print(entity)
+        else:
+            entity = "entity: {}".format(res_map[entity])
+            print(entity)
+
+        def template(name):
+            if name in data.keys():
+                doc, tot = data[name]
+                result   = str(doc)+"/"+str(tot)
+                
+                if doc == 0:
+                    color = self.set_text_color('r')
+                elif doc < tot:
+                    color = self.set_text_color('y')
+                else:
+                    color = self.set_text_color('g')
+            else:
+                result = "no"
+                color  = self.set_text_color('default')
+            
+            return "{:13}: {}{}{}".format(name, color, result, self.set_text_color('default'))
+
+        print(template("generic_param"))
+        print(template("port_signal"))
+
 
     @staticmethod
     def locate_in(document, span):
@@ -366,5 +417,18 @@ class CheckVHDL(Check):
         return (line_first, line_last)
 
 
-    def set_text_color(self, r, g, b):
-        return "\x1b[38;2;{};{};{}m".format(r, g, b)
+    def set_text_color(self, *args):
+        color_map = {'r':       '\x1b[38;2;180;0;0m',
+                     'y':       '\x1b[38;2;180;180;0m',
+                     'g':       '\x1b[38;2;0;180;0m',
+                     'default': '\x1b[0m'
+                    }
+
+        if len(args) == 1 and type(args[0]) == str:
+            color = color_map[args[0]] if args[0] in color_map.keys() else color_map['default']
+        elif len(args) == 3 and type(args[0]) == int:
+            color = "\x1b[38;2;{};{};{}m".format(*args)
+        else:
+            color = color_map['default']
+
+        return color
