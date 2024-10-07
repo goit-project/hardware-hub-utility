@@ -1,5 +1,6 @@
 from goit.classes.dependencies.DependencySolver import DependencySolver
 from goit.dependencies import *
+from goit.repository import *
 
 
 class DependencySolverHDLMake(DependencySolver):
@@ -14,14 +15,21 @@ class DependencySolverHDLMake(DependencySolver):
   def populate_dependencies(self, wildcard):
     '''TODO: documentation'''
     # retreive component list
-    component_list = get_component_paths(wildcard)
-    print(component_list)
+    path_targets = get_component_paths(wildcard)
 
     # retreive repo path
-    # TODO
+    path_repo = repo_getAbsolutePath()
+    path_repo_rel = os.path.relpath(path_repo, os.getcwd())
 
     # retreive dependencies using hdlmake
-    #get_dependencies_hdlmake(path_repo, path_tb, sim_tool='ghdl', sim_opts='-2008'):
+    dependencies = []
+    for path_target in path_targets:
+      deps = get_dependencies_hdlmake(path_repo_rel, path_target, sim_tool='ghdl', sim_opts='-2008')
+      for f in deps['files']:
+        dependencies.append(f)
+
+    # TODO: remove duplicates
+    self.dependencies = dependencies
 
 
   def get_dependencies(self):
@@ -30,4 +38,4 @@ class DependencySolverHDLMake(DependencySolver):
     A list of dicts values with component implementation files, libraries
     and optionally other metadata.
     '''
-    print("TODO")
+    return self.dependencies

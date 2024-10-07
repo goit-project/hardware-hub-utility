@@ -10,6 +10,7 @@ import goit.subcommands.component
 import goit.subcommands.package
 import goit.subcommands.version
 import goit.subcommands.help
+import goit.subcommands.test
 
 
 # TODO (functionality): instantiate component / library
@@ -63,6 +64,7 @@ def main():
   goit.subcommands.support.add_command(subcommands, subparsers)
   goit.subcommands.version.add_command(subcommands, subparsers)
   goit.subcommands.help.add_command(subcommands, subparsers)
+  goit.subcommands.test.add_command(subcommands, subparsers)
 
   # this produces autocomplete (if properly enabled)
   argcomplete.autocomplete(parser)

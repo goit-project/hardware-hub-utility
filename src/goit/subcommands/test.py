@@ -12,7 +12,9 @@ def command_callback(args):
   solver = DependencySolverHDLMake()
   solver.populate_dependencies(args.wildcard)
   deps_list = solver.get_dependencies()
-  print(deps_list)
+
+  for d in deps_list:
+    print(d)
 
 
 def add_command(subcommands, subparsers):
