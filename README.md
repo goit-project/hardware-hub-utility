@@ -4,42 +4,34 @@ This repository is part of [GoIT](https://wiki.goit-project.eu/index.php?title=M
 ## Installation
 The project uses standard [pyproject.toml](https://pip.pypa.io/en/latest/reference/build-system/pyproject-toml/) specification. For example, the project can be built using the [PDM](https://pdm-project.org/en/latest/) manager by following these steps:
 
-1. Clone this repository:
+1. Clone the repository:
    ```
    git clone git@github.com:goit-project/hardware-hub-utility.git
    ```
 
 2. Build and install
-
-   2.1. Build and install project using PDM:
    ```
    pdm build
-   pdm install .
    ```
-   alternativelly, for development purposes, editable mode can be enabled:
+   alternativelly, for development purposes, enable editable mode:
    ```
    pdm add --dev --editable .
    pdm build
+   ```
+
+3. Install
+   ```
    pdm install .
    ```
-   and check if tool is installed by running it
+   
+4. The project incoroporates both - an application (utility) and package. Therefore, unless a global installation is performed, a virtual environment must be enabled
    ```
-   pdm run goit --help
+   eval $(pdm venv activate)
    ```
    
-   2.2. Build and install project using PDM and [pipx](https://github.com/pypa/pipx):
+5. Test the tool:
    ```
-   pdm build
-   pipx install .
-   ```
-   or in editable mode:
-   ```
-   pdm build
-   pipx install -editable .
-   ```
-   At this point, the utility should be available globally. Update environment or open new terminal and type:
-   ```
-   goit --help
+   goit help
    ```
    
 
