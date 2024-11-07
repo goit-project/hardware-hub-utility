@@ -1,8 +1,7 @@
 from glob import glob
 from goit import defines
-from goit import framework
-from goit import solver
-from goit import simulator
+from goit import software
+
 
 class Simulation:
   def __init__(self,
@@ -11,9 +10,9 @@ class Simulation:
     simulator_id = defines.Simulator.DEFAULT):
 
     # initialize simulation wrapper objects
-    self.solver    = solver.find_and_init(solver_id)
-    self.simulator = simulator.find_and_init(simulator_id)
-    self.framework = framework.find_and_init(framework_id, simulator=self.simulator)
+    self.solver    = software.find_and_init_solver(solver_id)
+    self.simulator = software.find_and_init_simulator(simulator_id)
+    self.framework = software.find_and_init_framework(framework_id, simulator=self.simulator)
 
     # bookkeeping
     self._design_tests    = []
