@@ -2,14 +2,14 @@ import argparse
 import os
 
 from goit.classes.ComponentVHDL import ComponentVHDL
-from goit.classes.dependencies.DependencySolverHDLMake import DependencySolverHDLMake
+from goit.classes.solvers.SolverHDLMake import SolverHDLMake
 
 _CMD_NAME = os.path.basename(__file__).split('.')[0]
 _CMD_HELP = "Temporary command for testing utilities' codebase features"
 
 
 def command_callback(args):
-  solver = DependencySolverHDLMake()
+  solver = SolverHDLMake()
   solver.populate_dependencies(args.wildcard)
   deps_list = solver.get_dependencies()
 

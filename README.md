@@ -1,7 +1,15 @@
 # Hardware Hub Utility
 This repository is part of [GoIT](https://wiki.goit-project.eu/index.php?title=Main_Page) project's open-source silicon hub/repository. It contains **Hardware Hub Utility**, which aims at improving productivity in developing and maintaining silicon IP.
 
-## Installation
+## Table of Contents
+* [Setup](#setup)
+  + [Installation from sources](#installation-from-sources)
+  + [Autocomplete](#autocomplete)
+* [Contents](#contents)
+* [Usage](#usage)
+
+## Setup
+### Installation from sources
 The project uses standard [pyproject.toml](https://pip.pypa.io/en/latest/reference/build-system/pyproject-toml/) specification. For example, the project can be built using the [PDM](https://pdm-project.org/en/latest/) manager by following these steps:
 
 1. Clone the repository:
@@ -34,6 +42,12 @@ The project uses standard [pyproject.toml](https://pip.pypa.io/en/latest/referen
    goit help
    ```
    
+### Autocomplete
+It is highly recommended to set up argument completion as it will save a lot of time. The utility achieves this with [argcomplete](https://pypi.org/project/argcomplete/) python package. There is a script which attempts to set up autocomplete on your system for BASH or ZSH. The application utilizes BASH completion, which, in the case of ZSH, must be explicitly enabled. The script attempts to do that.
+```
+chmod +x autocomplete.sh
+./autocomplete.sh
+```
 
 ## Contents
 
