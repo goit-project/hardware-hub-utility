@@ -1,3 +1,5 @@
+from goit.defines import Solver as Enum
+
 class DependencySolver():
   '''
   Dependency solver super class.
@@ -5,6 +7,7 @@ class DependencySolver():
 
   def __init__(self):
     '''TODO: documentation'''
+    self.id = Enum.NONE
 
 
   def populate_dependencies(self, wildcard):

@@ -1,6 +1,7 @@
-from goit.classes.dependencies.DependencySolver import DependencySolver
-from goit.dependencies import *
+from goit.defines import Solver as Enum
 from goit.repository import *
+from goit.dependencies import *
+from goit.classes.dependencies.DependencySolver import DependencySolver
 
 
 class DependencySolverHDLMake(DependencySolver):
@@ -10,6 +11,7 @@ class DependencySolverHDLMake(DependencySolver):
 
   def __init__(self):
     '''TODO: documentation'''
+    self.id = Enum.HDLMAKE
 
 
   def populate_dependencies(self, wildcard):
