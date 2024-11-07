@@ -1,10 +1,10 @@
 from goit.defines import Solver as Enum
 from goit.repository import *
 from goit.dependencies import *
-from goit.classes.dependencies.DependencySolver import DependencySolver
+from goit.classes.solvers.Solver import Solver
 
 
-class DependencySolverHDLMake(DependencySolver):
+class SolverHDLMake(Solver):
   '''
   TODO
   ''' 

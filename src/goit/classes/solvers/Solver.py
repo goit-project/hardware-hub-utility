@@ -1,6 +1,6 @@
 from goit.defines import Solver as Enum
 
-class DependencySolver():
+class Solver():
   '''
   Dependency solver super class.
   ''' 
