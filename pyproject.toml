@@ -1,37 +1,36 @@
 [build-system]
-requires = [
-  "setuptools",
-]
-build-backend = "setuptools.build_meta"
-
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [project]
 name = "goit"
-description = "Python-based utility for working with the GoIT open-source semiconductor IP hub"
+version = "0.0.1"
+requires-python = ">=3.12"
+license = {text = "LGPL"}
 readme = "README.md"
-dynamic = ["version"]
+description = "Python-based utility for working with the GoIT open-source silicon IP hub"
 authors = [
   {name="Rihards Novickis", email="rihards.novickis@edi.lv"},
+  {name="Andis Bizuns",     email="andis.bizuns@edi.lv"},
 ]
 dependencies = [
   "argparse",
   "argcomplete",
   "vunit_hdl",
 ]
+keywords = [
+  "Silicon intellectual property",
+  "Automation",
+  "CLI",
+  "GoIT",
+]
 
-
-# TODO:
-# classifiers
-# requires-python
-
-[tool.setuptools.dynamic]
-version = {file = "src/goit/VERSION"}
-
+[tool.pdm]
+distribution = true
 
 [project.urls]
 Homepage = "https://github.com/goit-project/hardware-hub-utility"
 Issues   = "https://github.com/goit-project/hardware-hub-utility/issues"
-
 
 [project.scripts]
 goit = "goit.utility:main"
