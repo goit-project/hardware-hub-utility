@@ -9,7 +9,7 @@ class ComponentVHDL(Component):
     """
 
     lib_subdir      = "components"
-    template_path   = os.path.join(os.path.dirname(__file__), "../templates/vhdl")
+    template_path   = os.path.join(os.path.expanduser("~"), ".goit/templates/vhdl")
     template_struct = {'src' : {'component.vhd': True},
                        'tb'  : {'tb.vhd'       : True},
                        'sim' : {'run.py'       : True},
@@ -54,7 +54,8 @@ class ComponentVHDL(Component):
             elif sub_dir == "syn":
                 print('Preparing synthesis files...')
                 self.prepare_syn(sub_path, comp_name, lib_name)
-
+        
+        print('Component cteted')
         print('Done')
 
     def prepare_src(self, dir_path, comp_name):
