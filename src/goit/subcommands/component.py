@@ -1,5 +1,7 @@
 import argparse
 import os
+from goit import repository
+from goit import dependencies
 
 from goit.classes.ComponentVHDL import ComponentVHDL
 
@@ -8,7 +10,20 @@ _CMD_HELP = "Instantiate component into the repository"
 
 
 def command_callback(args):
-  lib_subdir = ComponentVHDL.lib_subdir
+  lib_paths     = dependencies.get_library_paths()
+  repo_path     = repository.repo_getAbsolutePath()
+  template_path = ComponentVHDL.template_path
+  lib_subdir    = ComponentVHDL.lib_subdir
+
+  # Check if template_path exists
+  if not templates_exists(template_path):
+    print("No matching templates were found here:", template_path)
+    print("Did you forget to add them using the post-install scripts using pdm run all?")
+    return
+  
+  # Check if is in repository
+  if not repo_path:
+    return
 
   # Uses the path base name as the library name if -l is not set
   if args.lname is not None: 
@@ -27,13 +42,16 @@ def command_callback(args):
   print("Component dest path:", os.path.join(root_comp, args.name))
 
   if(not os.path.exists(root_comp)):
-     print("It is recommended to add new components to ./{}, but there is no such directory. Use -f to ignore.".format(lib_subdir))
-     exit()
+     print("It is recommended to add new components to <library path>/{}, but there is no such directory. Use -p to set library path or -f to ignore.".format(lib_subdir))
+     print("Existing library paths:")
+     for path in lib_paths:
+        print(" ",path)
+     return
 
   comp_path = os.path.join(root_comp, args.name)
   if(os.path.exists(comp_path)):
      print("Directory: {} already conatains component named: {}".format(root_comp, args.name))
-     exit()
+     return
 
   comp_VHDL = ComponentVHDL(comp_path, lib_name)
 
@@ -69,3 +87,10 @@ def valid_path(parser, file_path):
       parser.error("Library path {} does not exist!".format(realpath))
   else:
       return realpath
+
+def templates_exists(template_path):
+    '''Returns the template path if one exists, false otherwise'''
+    if os.path.exists(template_path):
+        return template_path
+    
+    return False
