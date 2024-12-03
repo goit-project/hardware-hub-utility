@@ -31,13 +31,18 @@ The project uses standard [pyproject.toml](https://pip.pypa.io/en/latest/referen
    ```
    pdm install .
    ```
+
+4. Run the post-installation scripts to set up the utility
+   ```
+   pdm run all
+   ```
    
-4. The project incoroporates both - an application (utility) and package. Therefore, unless a global installation is performed, a virtual environment must be enabled
+5. The project incoroporates both - an application (utility) and package. Therefore, unless a global installation is performed, a virtual environment must be enabled
    ```
    eval $(pdm venv activate)
    ```
    
-5. Test the tool:
+6. Test the tool:
    ```
    goit help
    ```

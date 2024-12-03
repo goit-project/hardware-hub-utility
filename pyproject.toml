@@ -28,6 +28,10 @@ keywords = [
 [tool.pdm]
 distribution = true
 
+[tool.pdm.scripts]
+add_templates = {shell = "mkdir -p ~/.goit && cp -R -u ./src/goit/templates ~/.goit/templates"}
+all = {composite = ["add_templates"]}
+
 [project.urls]
 Homepage = "https://github.com/goit-project/hardware-hub-utility"
 Issues   = "https://github.com/goit-project/hardware-hub-utility/issues"
